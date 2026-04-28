@@ -1,0 +1,13 @@
+# Ignore the local configuration file containing secrets
+config.js
+entity-config.js
+
+
+# Standard files to ignore
+node_modules/
+.DS_Store
+*.log
+
+# IDE-specific folders
+.vscode/
+.idea/
