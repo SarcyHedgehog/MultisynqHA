@@ -142,15 +142,46 @@ function render() {
 }
 
 function entityCard(entity) {
+  const presentation = entityPresentation(entity);
   const stateClass = entity.available ? "" : " unavailable";
-  return `<article class="entity-card${stateClass}">
-    <div class="entity-copy">
-      <p class="entity-name">${escapeHtml(entity.name)}</p>
-      <p class="entity-id">${escapeHtml(entity.entityId)}</p>
+  const activeClass = entity.state === "on" ? " active" : "";
+  return `<article class="entity-card entity-${escapeHtml(presentation.domain)}${stateClass}${activeClass}">
+    <div class="entity-summary">
+      <span class="entity-icon" aria-hidden="true">${presentation.icon}</span>
+      <div class="entity-copy">
+        <p class="entity-name">${escapeHtml(entity.name)}</p>
+        <p class="entity-type">${escapeHtml(presentation.label)}</p>
+      </div>
+      <div class="state-chip"><strong>${escapeHtml(displayState(entity))}</strong>${entity.unit ? `<span>${escapeHtml(entity.unit)}</span>` : ""}</div>
     </div>
-    <div class="state-line"><strong>${escapeHtml(displayState(entity))}</strong>${entity.unit ? `<span>${escapeHtml(entity.unit)}</span>` : ""}</div>
-    ${controlHtml(entity)}
+    <div class="entity-control">${controlHtml(entity)}</div>
   </article>`;
+}
+
+function entityPresentation(entity) {
+  const domain = entity.domain || entity.entityId.split(".")[0] || "entity";
+  const name = entity.name.toLowerCase();
+  const presentations = {
+    light: ["💡", "Light"],
+    switch: ["🔌", "Switch"],
+    input_boolean: ["⏻", "Switch"],
+    lock: ["🔒", "Lock"],
+    cover: ["▤", "Cover"],
+    climate: ["🌡️", "Climate"],
+    media_player: ["▶", "Media"],
+    button: ["●", "Button"],
+    script: ["⚡", "Action"],
+    automation: ["⚙", "Automation"],
+    scene: ["✨", "Scene"],
+    select: ["☷", "Choice"],
+    input_select: ["☷", "Choice"],
+    number: ["⌁", "Level"],
+    input_number: ["⌁", "Level"],
+    sensor: ["◉", "Sensor"],
+    binary_sensor: [name.match(/door|garage|window|contact/) ? "🚪" : "◉", "Sensor"],
+  };
+  const [icon, label] = presentations[domain] || ["◆", domain.replaceAll("_", " ")];
+  return { domain, icon, label };
 }
 
 function controlHtml(entity) {
