@@ -130,12 +130,11 @@ function render() {
   }
   const query = dom.search.value.trim().toLowerCase();
   const entities = snapshot.entities.filter((entity) => `${entity.name} ${entity.entityId} ${entity.areaName}`.toLowerCase().includes(query));
-  const groups = Map.groupBy ? Map.groupBy(entities, (entity) => entity.areaName || "Home") : groupBy(entities);
-  dom.groups.innerHTML = [...groups.entries()].map(([area, items]) => `
+  dom.groups.innerHTML = entities.length ? `
     <section class="entity-section">
-      <div class="section-heading"><h2>${escapeHtml(area)}</h2><span>${items.length}</span></div>
-      <div class="entity-grid">${items.map(entityCard).join("")}</div>
-    </section>`).join("") || '<div class="panel empty">No matching controls.</div>';
+      <div class="section-heading"><h2>Controls</h2><span>${entities.length}</span></div>
+      <div class="entity-grid">${entities.map(entityCard).join("")}</div>
+    </section>` : '<div class="panel empty">No matching controls.</div>';
   dom.groups.querySelectorAll("[data-command]").forEach((button) => button.addEventListener("click", () => sendFromElement(button)));
   dom.groups.querySelectorAll("select[data-entity]").forEach((select) => select.addEventListener("change", () => sendCommand(select.dataset.entity, "select_option", select.value)));
   dom.groups.querySelectorAll("input[type=range][data-entity]").forEach((input) => input.addEventListener("change", () => sendCommand(input.dataset.entity, "set_value", input.value)));
@@ -150,7 +149,7 @@ function entityCard(entity) {
       <span class="entity-icon" aria-hidden="true">${presentation.icon}</span>
       <div class="entity-copy">
         <p class="entity-name">${escapeHtml(entity.name)}</p>
-        <p class="entity-type">${escapeHtml(presentation.label)}</p>
+        <p class="entity-type">${escapeHtml(presentation.label)}${entity.areaName ? ` <span aria-hidden="true">·</span> ${escapeHtml(entity.areaName)}` : ""}</p>
       </div>
       <div class="state-chip"><strong>${escapeHtml(displayState(entity))}</strong>${entity.unit ? `<span>${escapeHtml(entity.unit)}</span>` : ""}</div>
     </div>
@@ -218,11 +217,6 @@ function setConnection(kind, detail) {
   dom.pill.className = `status ${kind}`;
   dom.pill.textContent = kind === "online" ? "Online" : kind === "connecting" ? "Connecting" : kind === "warning" ? "Limited" : "Offline";
   dom.detail.textContent = detail;
-}
-function groupBy(items) {
-  const map = new Map();
-  items.forEach((item) => { const key = item.areaName || "Home"; map.set(key, [...(map.get(key) || []), item]); });
-  return map;
 }
 async function hash(value) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
