@@ -3,6 +3,7 @@ config.js
 bridge.config.json
 exposed-entities.json
 .photon-ha-runtime.json
+archive/
 
 
 # Standard files to ignore
