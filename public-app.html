@@ -1,197 +1,43 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Public Multisynq Controller</title>
-  <style>
-    :root {
-      --bg: #f3efe7;
-      --panel: rgba(255, 252, 246, 0.86);
-      --text: #1f2937;
-      --muted: #6b7280;
-      --line: #d6cfc1;
-      --accent: #b45309;
-      --accent-2: #0f766e;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(180, 83, 9, 0.16), transparent 35%),
-        radial-gradient(circle at bottom right, rgba(15, 118, 110, 0.18), transparent 30%),
-        linear-gradient(180deg, #f8f4ec, var(--bg));
-    }
-
-    main {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 28px 18px 36px;
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 22px;
-      box-shadow: 0 14px 40px rgba(51, 65, 85, 0.08);
-      backdrop-filter: blur(8px);
-    }
-
-    form {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-      align-items: end;
-    }
-
-    label {
-      display: block;
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-      color: var(--muted);
-    }
-
-    input, button {
-      width: 100%;
-      font: inherit;
-      border-radius: 12px;
-      padding: 12px 14px;
-      border: 1px solid var(--line);
-    }
-
-    button {
-      background: var(--accent);
-      color: white;
-      cursor: pointer;
-      border: 0;
-    }
-
-    button:disabled {
-      background: #cbd5e1;
-      cursor: not-allowed;
-    }
-
-    .toolbar {
-      margin-bottom: 18px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 14px;
-      margin-top: 18px;
-    }
-
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.55);
-    }
-
-    .card-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: start;
-    }
-
-    .pill {
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 0.9rem;
-      white-space: nowrap;
-    }
-
-    .pill.on {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .pill.off {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .muted, .empty {
-      color: var(--muted);
-    }
-
-    #app-shell {
-      display: none;
-      margin-top: 18px;
-    }
-
-    #status-message {
-      margin-top: 10px;
-      color: #991b1b;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@multisynq/client@latest/bundled/multisynq-client.min.js"></script>
-  <script src="config.js"></script>
-  <script src="shared.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <title>Home Remote</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <main>
-    <section class="panel toolbar">
-      <h1>Public Multisynq Controller</h1>
-      <p class="muted">Join a session, view the entities the local bridge has exposed, and send simple on or off requests back through the shared model.</p>
-      <form id="join-form">
-        <div>
-          <label for="session-name">Session name</label>
-          <input id="session-name" name="sessionName" required>
+<body class="remote-page">
+  <main class="shell">
+    <header class="hero compact">
+      <div>
+        <p class="eyebrow">Sarcastic Hedgehog</p>
+        <h1>Home Remote</h1>
+        <p id="connection-detail" class="muted">Securely connect to Home Assistant.</p>
+      </div>
+      <span id="connection-pill" class="status offline">Offline</span>
+    </header>
+
+    <section id="login-panel" class="panel login-panel">
+      <form id="login-form">
+        <label for="password">Remote password</label>
+        <div class="login-row">
+          <input id="password" type="password" required autocomplete="current-password" placeholder="Password">
+          <button type="submit" class="primary">Connect</button>
         </div>
-        <div>
-          <label for="session-password">Password</label>
-          <input id="session-password" name="password" type="password" required>
-        </div>
-        <div>
-          <button type="submit">Join session</button>
-        </div>
+        <p id="login-error" class="error" role="alert"></p>
       </form>
-      <p id="status-message"></p>
     </section>
 
-    <section id="app-shell" class="panel">
-      <p id="session-meta" class="muted"></p>
-      <p id="public-bridge-status"></p>
-      <div id="public-entity-list" class="grid"></div>
+    <section id="remote-panel" hidden>
+      <div class="toolbar">
+        <input id="entity-search" type="search" placeholder="Search remote controls…" aria-label="Search controls">
+        <button id="disconnect" class="quiet">Disconnect</button>
+      </div>
+      <div id="entity-groups"></div>
     </section>
   </main>
-
-  <script>
-    window.addEventListener("load", () => {
-      const defaults = window.EntitySyncApp.entitySyncConfig();
-      const form = document.getElementById("join-form");
-      const sessionNameInput = document.getElementById("session-name");
-      const passwordInput = document.getElementById("session-password");
-      const statusMessage = document.getElementById("status-message");
-
-      sessionNameInput.value = defaults.sessionName;
-      passwordInput.value = defaults.sessionPassword;
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        statusMessage.textContent = "";
-
-        try {
-          await window.EntitySyncApp.joinPublicSession(
-            sessionNameInput.value.trim(),
-            passwordInput.value
-          );
-          document.getElementById("app-shell").style.display = "block";
-        } catch (error) {
-          statusMessage.textContent = error.message;
-        }
-      });
-    });
-  </script>
+  <script src="config.js"></script>
+  <script type="module" src="remote-app.js"></script>
 </body>
 </html>

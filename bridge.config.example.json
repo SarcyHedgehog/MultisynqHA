@@ -1,0 +1,13 @@
+{
+  "photonAppId": "",
+  "photonRegion": "eu",
+  "photonSdkPath": "vendor/photon.min.js",
+  "roomName": "photon-ha-home",
+  "remotePassword": "replace-with-a-long-unique-password",
+  "haWebSocketUrl": "ws://homeassistant:8123/api/websocket",
+  "haToken": "paste-a-long-lived-home-assistant-token-here",
+  "adminHost": "127.0.0.1",
+  "adminPort": 8765,
+  "exposedEntitiesFile": "exposed-entities.json",
+  "debug": false
+}

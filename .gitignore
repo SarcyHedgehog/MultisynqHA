@@ -1,6 +1,8 @@
 # Ignore the local configuration file containing secrets
 config.js
-entity-config.js
+bridge.config.json
+exposed-entities.json
+.photon-ha-runtime.json
 
 
 # Standard files to ignore

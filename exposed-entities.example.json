@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "entities": [
+    {
+      "entityId": "switch.heater",
+      "name": "Heater",
+      "writable": true
+    },
+    {
+      "entityId": "switch.screen",
+      "name": "Screen",
+      "writable": true
+    },
+    {
+      "entityId": "light.laundry_light",
+      "name": "Laundry Light",
+      "writable": true
+    }
+  ]
+}

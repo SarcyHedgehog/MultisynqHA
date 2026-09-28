@@ -1,6 +1,8 @@
-// Copy this file to config.js and fill in your real Multisynq values.
-// This file is safe for the public app because the API key is origin-restricted.
-window.APP_CONFIG = {
-  API_KEY: "Your API Key from multisynq.io/code",
-  APP_ID: "com.domain.entity_sync_demo",
+// Public configuration. The Photon App ID is an identifier, not a secret.
+window.PHOTON_HA_CONFIG = {
+  PHOTON_APP_ID: "",
+  PHOTON_REGION: "eu",
+  PHOTON_SDK_URL: "vendor/photon.min.js",
+  ROOM_NAME: "photon-ha-home",
+  DEBUG: false,
 };
