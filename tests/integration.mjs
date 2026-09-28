@@ -85,7 +85,10 @@ async function photonRemoteTest() {
     };
     client.onJoinRoom = () => {
       console.log("Remote joined Photon room");
-      client.raiseEvent(1, { passwordHash }, { receivers: Photon.LoadBalancing.Constants.ReceiverGroup.All });
+      const bridge = client.myRoomActorsArray().find((actor) => actor.getCustomProperty("pha_role") === "bridge");
+      if (!bridge) return reject(new Error("Bridge actor was not discoverable"));
+      bridgeActor = bridge.actorNr;
+      client.raiseEvent(1, { passwordHash }, { targetActors: [bridgeActor] });
     };
     client.onEvent = (code, content, actorNr) => {
       console.log(`Remote event code=${code} actor=${actorNr}`);

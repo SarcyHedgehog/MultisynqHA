@@ -47,6 +47,7 @@ async function connect(password) {
   const Client = Photon.LoadBalancing.LoadBalancingClient;
   const State = Client.State;
   const passwordHash = await hash(password);
+  let authRequested = false;
   client = new Client(Photon.ConnectionProtocol.Wss, config.PHOTON_APP_ID, "photon-ha-1");
   client.setUserId(`remote-${crypto.randomUUID()}`);
   client.setLogLevel(config.DEBUG ? Photon.LogLevel.DEBUG : Photon.LogLevel.WARN);
@@ -62,14 +63,32 @@ async function connect(password) {
         reject(new Error("The Home Assistant bridge is not currently available."));
       }
     };
-    client.onJoinRoom = () => {
+    const authenticateWith = (actorNr) => {
+      if (authRequested || !actorNr) return;
+      authRequested = true;
+      bridgeActor = actorNr;
       setConnection("connecting", "Authenticating with the home bridge…");
       client.raiseEvent(EVENT.AUTH_REQUEST, { passwordHash }, {
-        receivers: Photon.LoadBalancing.Constants.ReceiverGroup.All,
+        targetActors: [bridgeActor],
       });
     };
+    const findBridge = () => client.myRoomActorsArray?.().find((actor) => actor.getCustomProperty?.("pha_role") === "bridge");
+    client.onJoinRoom = () => {
+      const bridge = findBridge();
+      if (bridge) authenticateWith(bridge.actorNr);
+      else setConnection("connecting", "Waiting for the home bridge…");
+    };
+    client.onActorPropertiesChange = (actor) => {
+      if (actor.getCustomProperty?.("pha_role") === "bridge") authenticateWith(actor.actorNr);
+    };
     client.onEvent = (code, content, actorNr) => {
+      if (code === EVENT.BRIDGE_HELLO) {
+        const actor = client.myRoomActors?.()[actorNr];
+        if (actor?.getCustomProperty?.("pha_role") === "bridge") authenticateWith(actorNr);
+        return;
+      }
       if (code === EVENT.AUTH_RESULT) {
+        if (actorNr !== bridgeActor) return;
         if (!content.ok) {
           clearTimeout(timer);
           reject(new Error(content.message || "Authentication failed."));
