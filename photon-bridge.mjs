@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 import WebSocket from "ws";
 
 const ROOT = process.cwd();
-const CONFIG_PATH = path.join(ROOT, "bridge.config.json");
+const CONFIG_PATH = process.env.PHOTON_HA_CONFIG || path.join(ROOT, "bridge.config.json");
 const EVENT = Object.freeze({
   AUTH_REQUEST: 1,
   AUTH_RESULT: 2,
@@ -490,7 +490,7 @@ function readBody(request) {
 }
 
 async function main() {
-  if (!fs.existsSync(CONFIG_PATH)) throw new Error("Copy bridge.config.example.json to bridge.config.json first");
+  if (!fs.existsSync(CONFIG_PATH)) throw new Error(`Bridge configuration not found: ${CONFIG_PATH}`);
   const config = readJson(CONFIG_PATH);
   for (const key of ["photonAppId", "roomName", "remotePassword", "haWebSocketUrl", "haToken"]) {
     if (!config[key]) throw new Error(`bridge.config.json must define ${key}`);

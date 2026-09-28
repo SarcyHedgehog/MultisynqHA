@@ -8,7 +8,7 @@ let entities = [];
 let selected = new Map();
 
 async function load() {
-  const [status, discovered, exposed] = await Promise.all([api("/api/status"), api("/api/entities"), api("/api/exposed")]);
+  const [status, discovered, exposed] = await Promise.all([api("api/status"), api("api/entities"), api("api/exposed")]);
   entities = discovered.filter((entity) => !entity.disabled).sort((a, b) => `${a.areaName} ${a.name}`.localeCompare(`${b.areaName} ${b.name}`));
   selected = new Map(exposed.entities.map((item) => [item.entityId, item]));
   const domains = [...new Set(entities.map((entity) => entity.domain))].sort();
@@ -58,7 +58,7 @@ dom.domain.addEventListener("change", render);
 dom.selectedOnly.addEventListener("change", render);
 dom.save.addEventListener("click", async () => {
   dom.save.disabled = true; dom.save.textContent = "Saving…";
-  try { await api("/api/exposed", { method: "PUT", body: JSON.stringify({ version: 1, entities: [...selected.values()] }) }); dom.save.textContent = "Saved"; }
+  try { await api("api/exposed", { method: "PUT", body: JSON.stringify({ version: 1, entities: [...selected.values()] }) }); dom.save.textContent = "Saved"; }
   catch (error) { alert(error.message); dom.save.textContent = "Save selection"; }
   finally { setTimeout(() => { dom.save.disabled = false; dom.save.textContent = "Save selection"; }, 1000); }
 });
