@@ -1,9 +1,11 @@
 const EVENT = Object.freeze({ AUTH_REQUEST: 1, AUTH_RESULT: 2, COMMAND_REQUEST: 3, COMMAND_RESULT: 4, SNAPSHOT: 5, BRIDGE_HELLO: 6 });
 const config = window.PHOTON_HA_CONFIG || {};
+const REMEMBERED_KEY = "photon-ha-remote-access-key";
 const dom = {
   loginPanel: document.querySelector("#login-panel"),
   loginForm: document.querySelector("#login-form"),
   password: document.querySelector("#password"),
+  remember: document.querySelector("#remember-device"),
   loginError: document.querySelector("#login-error"),
   remotePanel: document.querySelector("#remote-panel"),
   groups: document.querySelector("#entity-groups"),
@@ -24,7 +26,10 @@ dom.loginForm.addEventListener("submit", async (event) => {
   dom.loginError.textContent = "";
   try {
     setConnection("connecting", "Connecting to Photon…");
-    await connect(dom.password.value);
+    const passwordHash = await hash(dom.password.value);
+    await connect(passwordHash);
+    setRememberedCredential(dom.remember.checked ? passwordHash : null);
+    dom.password.value = "";
   } catch (error) {
     dom.loginError.textContent = error.message;
     setConnection("offline", "Connection failed");
@@ -33,6 +38,8 @@ dom.loginForm.addEventListener("submit", async (event) => {
 dom.search.addEventListener("input", render);
 dom.disconnect.addEventListener("click", () => {
   client?.disconnect();
+  setRememberedCredential(null);
+  dom.remember.checked = false;
   authenticated = false;
   snapshot = null;
   dom.remotePanel.hidden = true;
@@ -40,13 +47,12 @@ dom.disconnect.addEventListener("click", () => {
   setConnection("offline", "Disconnected");
 });
 
-async function connect(password) {
+async function connect(passwordHash) {
   if (!config.PHOTON_APP_ID) throw new Error("Photon App ID is not configured.");
   await loadPhoton(config.PHOTON_SDK_URL || "vendor/photon.min.js");
   const Photon = window.Photon;
   const Client = Photon.LoadBalancing.LoadBalancingClient;
   const State = Client.State;
-  const passwordHash = await hash(password);
   let authRequested = false;
   client = new Client(Photon.ConnectionProtocol.Wss, config.PHOTON_APP_ID, "photon-ha-1");
   client.setUserId(`remote-${crypto.randomUUID()}`);
@@ -218,6 +224,16 @@ function setConnection(kind, detail) {
   dom.pill.textContent = kind === "online" ? "Online" : kind === "connecting" ? "Connecting" : kind === "warning" ? "Limited" : "Offline";
   dom.detail.textContent = detail;
 }
+function setRememberedCredential(value) {
+  try {
+    if (value) localStorage.setItem(REMEMBERED_KEY, value);
+    else localStorage.removeItem(REMEMBERED_KEY);
+  } catch (_error) { /* Private browsing or storage policy may block persistence. */ }
+}
+function getRememberedCredential() {
+  try { return localStorage.getItem(REMEMBERED_KEY); }
+  catch (_error) { return null; }
+}
 async function hash(value) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
   return [...new Uint8Array(bytes)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -231,4 +247,16 @@ async function loadPhoton(url) {
 }
 function escapeHtml(value) {
   return String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[character]));
+}
+
+const rememberedCredential = getRememberedCredential();
+if (rememberedCredential) {
+  dom.remember.checked = true;
+  setConnection("connecting", "Reconnecting to the home bridge…");
+  connect(rememberedCredential).catch((error) => {
+    setRememberedCredential(null);
+    dom.remember.checked = false;
+    dom.loginError.textContent = `${error.message} Please enter the remote password again.`;
+    setConnection("offline", "Automatic connection failed");
+  });
 }
