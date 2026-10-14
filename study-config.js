@@ -19,10 +19,10 @@ window.PHOTON_HA_STUDY_CONFIG = {
   furniture: [
     { type: "rug", name: "Rug", position: [4.25, 0.015, 2.15], size: [3.5, 0.03, 1.75], color: "#33465a" },
     { type: "window-table", name: "Window table", position: [6.4, 0.74, 0.42], size: [1.65, 0.09, 0.5], color: "#b9bec1" },
-    { type: "executive-desk", name: "Main desk", position: [5.3, 0.76, 2.05], size: [2.15, 0.09, 0.82], color: "#b9753d", returnSide: "right" },
-    { type: "office-chair", name: "Office chair", position: [5.3, 0.48, 3.22], size: [0.62, 0.96, 0.62], rotation: 0, color: "#3d4a53" },
-    { type: "dual-monitors", name: "Desk monitors", position: [5.3, 1.17, 1.78], size: [1.15, 0.48, 0.06], color: "#111820", entityId: "switch.office_standard" },
-    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.5, 0, 2.72], size: [1.82, 0.78, 0.78], rotation: -2.3562, color: "#034536" },
+    { type: "executive-desk", name: "Main desk", position: [6.72, 0.76, 2.05], size: [2.15, 0.09, 0.82], color: "#b9753d", returnSide: "right" },
+    { type: "office-chair", name: "Office chair", position: [6.72, 0.48, 3.22], size: [0.62, 0.96, 0.62], rotation: 0, color: "#3d4a53" },
+    { type: "dual-monitors", name: "Desk monitors", position: [6.72, 1.17, 1.78], size: [1.15, 0.48, 0.06], color: "#111820", entityId: "switch.office_standard" },
+    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.5, 0, 2.72], size: [1.82, 0.78, 0.78], rotation: -3.927, color: "#034536" },
     { type: "screen", name: "Display", position: [4.0, 1.35, 0.08], size: [1.1, 0.68, 0.08], color: "#0a1018", entityId: "switch.screen" },
   ],
   devices: [
@@ -33,7 +33,7 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { entityId: "light.office_light_switch_l3", name: "Outside wall light", type: "wall-light", position: [4.6, 1.72, -0.18], effect: "warm-light" },
     { entityId: "fan.office_heater", name: "Office heater", type: "heater", position: [3.8, 0, 1.8], effect: "heat" },
     { entityId: "switch.screen", name: "Screen", type: "screen", position: [4.0, 1.35, 0.08], effect: "screen-glow" },
-    { entityId: "switch.office_standard", name: "Office monitors", type: "equipment", position: [5.3, 1.17, 1.18], effect: "monitor-glow" },
+    { entityId: "switch.office_standard", name: "Office monitors", type: "equipment", position: [6.72, 1.17, 1.18], effect: "monitor-glow" },
     { entityId: "binary_sensor.studypresence_occupancy", name: "Presence", type: "presence", position: [3.6, 2.42, 3.0], effect: "presence" },
     { entityId: "binary_sensor.study_door_contact", name: "Study door", type: "door-sensor", position: [1.6, 1.05, 0.03] },
     { entityId: "binary_sensor.study_leak_detector_water_leak", name: "Leak detector", type: "leak", position: [5.2, 0.04, 0.4], effect: "alert" },
