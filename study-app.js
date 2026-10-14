@@ -456,7 +456,7 @@ if (previewMode) {
     available: true, writable: false, unit: device.type === "temperature" ? "°C" : "", control: { type: "read_only" },
   });
   liveEntities.get("sensor.study_door_device_temperature").state = "21.4";
-  liveEntities.get("sensor.front_drive_motion_illuminance").state = "650";
+  liveEntities.get("sensor.back_garden_motion_illuminance").state = "650";
   liveEntities.get("light.rgb_strip_lights").attributes = { rgb_color: [255, 42, 166], brightness: 190 };
   liveEntities.get("binary_sensor.study_door_contact").state = "open";
   dom.loginPanel.hidden = true; dom.panel.hidden = false;
