@@ -254,7 +254,7 @@ function drawRoom() {
   const r = study.room;
   polygon([[0,0,0],[r.width,0,0],[r.width,0,r.depth],[0,0,r.depth]], r.floorColor, "#8b735c");
   for (let x=0; x<=r.width; x+=.5) line3([[x,.006,0],[x,.006,r.depth]], "rgba(224,202,177,.12)", .7);
-  polygon([[0,r.height,0],[r.width,r.height,0],[r.width,r.height,r.depth],[0,r.height,r.depth]], "#e7e8e2", "#f2f3ed", .28);
+  polygon([[0,r.height,0],[r.width,r.height,0],[r.width,r.height,r.depth],[0,r.height,r.depth]], "#e7e8e2", "#f2f3ed", 1);
   polygon([[0,0,0],[r.width,0,0],[r.width,r.height,0],[0,r.height,0]], r.wallColor, "#c6cdcd", 1);
   polygon([[0,0,0],[0,0,r.depth],[0,r.height,r.depth],[0,r.height,0]], shade(r.wallColor,-12), "#c6cdcd", 1);
   polygon([[r.width,0,0],[r.width,0,r.depth],[r.width,r.height,r.depth],[r.width,r.height,0]], shade(r.wallColor,-20), "#c6cdcd", 1);
@@ -268,18 +268,19 @@ function drawOpenings() {
     if (opening.wall === "back") {
       const x1=opening.center-opening.width/2, x2=opening.center+opening.width/2, z=-.012;
       const color = opening.type.includes("door") ? "#26333d" : "#78b7d1";
-      polygon([[x1,bottom,z],[x2,bottom,z],[x2,bottom+opening.height,z],[x1,bottom+opening.height,z]], color, "#d0e3e8", .88);
+      polygon([[x1,bottom,z],[x2,bottom,z],[x2,bottom+opening.height,z],[x1,bottom+opening.height,z]], color, "#d0e3e8", 1);
       if (opening.type === "double-door") line3([[opening.center,bottom,z-.01],[opening.center,bottom+opening.height,z-.01]], "#a6b3ba", 1.2);
       else if (!opening.singlePane) { line3([[x1,bottom+opening.height/2,z-.01],[x2,bottom+opening.height/2,z-.01]], "rgba(230,250,255,.7)", 1); line3([[opening.center,bottom,z-.01],[opening.center,bottom+opening.height,z-.01]], "rgba(230,250,255,.7)", 1); }
     } else {
       const z1=opening.center-opening.width/2, z2=opening.center+opening.width/2, x=-.012;
-      polygon([[x,bottom,z1],[x,bottom,z2],[x,bottom+opening.height,z2],[x,bottom+opening.height,z1]], "#78b7d1", "#d0e3e8", .85);
+      polygon([[x,bottom,z1],[x,bottom,z2],[x,bottom+opening.height,z2],[x,bottom+opening.height,z1]], "#78b7d1", "#d0e3e8", 1);
     }
   }
 }
 
 function drawFurniture() {
-  for (const item of study.furniture) {
+  const orderedFurniture = [...study.furniture].sort((a,b) => project(b.position).depth - project(a.position).depth);
+  for (const item of orderedFurniture) {
     const on = isActive(liveEntities.get(item.entityId));
     if (item.type === "rug") { box(item.position,item.size,item.color,item.rotation); continue; }
     if (item.type === "window-table") {
@@ -308,8 +309,10 @@ function drawFurniture() {
       continue;
     }
     if (item.type === "office-chair") {
-      box(item.position,[item.size[0],.16,item.size[2]],item.color,item.rotation);
-      box(offsetPosition(item.position,0,.39,.23,item.rotation),[item.size[0],.7,.14],shade(item.color,8),item.rotation);
+      drawSoftEllipse(item.position,.31,.13,shade(item.color,10));
+      box(offsetPosition(item.position,0,.34,.23,item.rotation),[item.size[0]*.68,.56,.11],shade(item.color,15),item.rotation);
+      drawSoftEllipse(offsetPosition(item.position,0,.45,.24,item.rotation),.23,.3,shade(item.color,18));
+      for(const dx of [-.3,.3]){line3([offsetPosition(item.position,dx,.12,0,item.rotation),offsetPosition(item.position,dx,.28,0,item.rotation)],"#69757c",3);line3([offsetPosition(item.position,dx,.28,0,item.rotation),offsetPosition(item.position,dx,.28,-.2,item.rotation)],"#69757c",3);}
       line3([offsetPosition(item.position,0,-.08,0,item.rotation),offsetPosition(item.position,0,-.42,0,item.rotation)],"#55616a",5);
       for (const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5]) line3([offsetPosition(item.position,0,-.42,0,item.rotation),offsetPosition(item.position,Math.cos(angle)*.3,-.45,Math.sin(angle)*.3,item.rotation)],"#55616a",3);
       continue;
@@ -323,6 +326,7 @@ function drawFurniture() {
       box(item.position,item.size,item.color,item.rotation);
       box(offsetPosition(item.position,0,.39,.25,item.rotation),[item.size[0]*.86,.62,.22],shade(item.color,-6),item.rotation);
       for (const dx of [-.39,.39]) box(offsetPosition(item.position,dx,.15,-.08,item.rotation),[.7,.18,.55],shade(item.color,10),item.rotation);
+      for (const dx of [-.39,.39]) drawSoftEllipse(offsetPosition(item.position,dx,.42,.25,item.rotation),.28,.26,shade(item.color,8));
       for (const dx of [-.78,.78]) drawSoftEllipse(offsetPosition(item.position,dx,.18,0,item.rotation),.22,.32,shade(item.color,-2));
       continue;
     }
@@ -334,12 +338,12 @@ function drawFurniture() {
 }
 
 function drawDeviceEffects(time) {
-  for (const device of study.devices) {
+  const devices = [...study.devices].filter((device) => device.type !== "wall-light").sort((a,b) => project(b.position).depth-project(a.position).depth);
+  for (const device of devices) {
     const entity = liveEntities.get(device.entityId), active = isActive(entity);
     if (device.type === "gu10-track") drawGu10Track(device, active);
     if (device.type === "floor-lamp") drawFloorLamp(device, active);
     if (device.type === "led-strip") drawLedStrip(device, active, time);
-    if (device.type === "wall-light") drawWallLight(device, active);
     if (device.type === "heater") drawHeater(device, active, time);
     if (device.type === "presence") {
       drawCeilingSensor(device.position, active);
@@ -359,19 +363,19 @@ function drawGu10Track(device, active) {
   for (const offset of [-.43,0,.43]) {
     line3([along(offset,y-.03),along(offset,y-.12)],"#36434d",3);
     const lamp=along(offset,y-.16), floor=along(offset,0.02);
-    if (active) {
-      polygon([[lamp[0]-.07,lamp[1],lamp[2]-.07],[lamp[0]+.07,lamp[1],lamp[2]+.07],[floor[0]+.62,0.02,floor[2]+.62],[floor[0]-.62,0.02,floor[2]-.62]],"#ffe3a1",null,.095);
-      drawFloorGlow(floor,"rgba(255,210,118,.48)",.92);
-    }
+    if (active) drawFloorGlow(floor,"rgba(255,210,118,.48)",.92);
     box(lamp,[.14,.15,.14],active?"#ffe0a0":"#40505e",angle);
   }
 }
 
 function drawFloorLamp(device, active) {
   const [x,,z]=device.position;
-  line3([[x,0,z],[x,1.35,z]],"#3f4b55",4);
-  box([x,1.38,z],[.42,.32,.42],active?"#f5d99d":"#59636b",0);
-  if (active) { drawFloorGlow([x,0.02,z],"rgba(255,202,107,.48)",1.4); drawPointGlow([x,1.38,z],"rgba(255,211,128,.5)",.75); }
+  box([x,.025,z],[.42,.05,.42],"#343e44",0);line3([[x,.05,z],[x,1.38,z]],"#3f4b55",5);
+  const bottom=1.19,top=1.68,radius=.2;
+  for(let ring=0;ring<3;ring++){const y=bottom+(top-bottom)*ring/2,pts=[];for(let i=0;i<=16;i++){const a=i*Math.PI*2/16;pts.push([x+Math.cos(a)*radius,y,z+Math.sin(a)*radius]);}line3(pts,"#283238",1.4);}
+  for(let i=0;i<10;i++){const a=i*Math.PI*2/10;line3([[x+Math.cos(a)*radius,bottom,z+Math.sin(a)*radius],[x+Math.cos(a)*radius,top,z+Math.sin(a)*radius]],"#283238",1.2);}
+  drawOrb([x,1.44,z],active?"#fff0bd":"#ded7c4",active?11:8,active?18:2);
+  if (active) { drawFloorGlow([x,0.02,z],"rgba(255,202,107,.48)",1.4); drawPointGlow([x,1.44,z],"rgba(255,211,128,.5)",.75); }
 }
 
 function drawLedStrip(device, active, time) {
@@ -381,11 +385,14 @@ function drawLedStrip(device, active, time) {
   if(active) drawPointGlow([x,y,z],`hsla(${hue} 95% 62% / .45)`,1.5);
 }
 
-function drawWallLight(device, active) { box(device.position,[.22,.38,.18],active?"#ffe0a0":"#495967"); if(active) drawPointGlow(device.position,"rgba(255,213,127,.5)",1.05); }
+function drawOutsideLight(device,active){if(active)drawPointGlow(device.position,"rgba(255,194,96,.7)",1.35);}
 function drawHeater(device, active, time) {
-  const [x,,z]=device.position; box([x,.28,z],[.68,.56,.18],active?"#9e5435":"#4d5a62");
-  if(!active)return;
-  for(let i=-1;i<=1;i++){const phase=time/270+i; line3([[x+i*.16,.62,z],[x+i*.13+Math.sin(phase)*.04,.85,z],[x+i*.16+Math.sin(phase+1)*.05,1.08,z]],"#ff9c5e",2,.65);}
+  const [x,,z]=device.position,body=active?"#e7d3c8":"#d7dcda";
+  for(let i=-4;i<=4;i++){const dx=i*.075;box([x+dx,.43,z],[.052,.72,.3],body,0);drawSoftEllipse([x+dx,.77,z],.03,.09,shade(body,8));}
+  line3([[x-.34,.18,z],[x+.34,.18,z]],"#929c9e",5);line3([[x-.34,.68,z],[x+.34,.68,z]],"#929c9e",5);
+  box([x+.43,.53,z],[.16,.34,.26],"#c2c9c8",0);drawOrb([x+.43,.64,z-.14],"#29343a",4,0);
+  for(const dx of [-.27,.27]){box([x+dx,.075,z],[.24,.045,.28],"#6f787c",0);for(const dz of [-.1,.1])drawOrb([x+dx,.035,z+dz],"#263036",4,0);}
+  if(!active)return;for(let i=-2;i<=2;i++){const phase=time/270+i;line3([[x+i*.13,.84,z],[x+i*.11+Math.sin(phase)*.035,1.02,z],[x+i*.13+Math.sin(phase+1)*.04,1.18,z]],"#ff9c5e",2,.65);}
 }
 
 function drawSensor(position,color){const p=project(position);ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=10;ctx.fill();ctx.restore();}
@@ -398,6 +405,7 @@ function drawPresenceFigure(position,time){
   ctx.beginPath();ctx.moveTo(p.x,p.y-23+bob);ctx.lineTo(p.x,p.y-2+bob);ctx.moveTo(p.x,p.y-16+bob);ctx.lineTo(p.x-10,p.y-7+bob);ctx.moveTo(p.x,p.y-16+bob);ctx.lineTo(p.x+10,p.y-7+bob);ctx.moveTo(p.x,p.y-2+bob);ctx.lineTo(p.x-8,p.y+12+bob);ctx.moveTo(p.x,p.y-2+bob);ctx.lineTo(p.x+8,p.y+12+bob);ctx.stroke();ctx.restore();
 }
 function drawSoftEllipse(position,rx,ry,color){const p=project(position);ctx.save();ctx.fillStyle=color;ctx.strokeStyle="rgba(10,20,30,.35)";ctx.beginPath();ctx.ellipse(p.x,p.y,Math.max(5,rx*p.scale),Math.max(5,ry*p.scale),0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}
+function drawOrb(position,color,radius,glow=0){const p=project(position);ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=glow;ctx.fill();ctx.strokeStyle="rgba(20,30,35,.55)";ctx.stroke();ctx.restore();}
 function drawPulse(position,color,time){const p=project(position),radius=8+(time/40)%18;ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.strokeStyle=color;ctx.globalAlpha=1-(radius-8)/20;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
 function drawTemperature(device,entity){const p=project(device.position);const text=entity?.available?`${entity.state}${entity.unit||"°"}`:"—";ctx.save();ctx.fillStyle="rgba(5,16,28,.82)";ctx.strokeStyle="#4d7898";ctx.lineWidth=1;roundRect(p.x-25,p.y-13,50,26,9);ctx.fill();ctx.stroke();ctx.fillStyle="#eaf5ff";ctx.font="700 11px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,p.x,p.y);ctx.restore();}
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
@@ -407,6 +415,7 @@ function drawPointGlow(position,color,radius){const p=project(position),r=radius
 function renderScene(time=0) {
   const rect=dom.canvas.getBoundingClientRect();ctx.clearRect(0,0,rect.width,rect.height);
   const sky=ctx.createLinearGradient(0,0,0,rect.height);sky.addColorStop(0,"#172f44");sky.addColorStop(1,"#08131f");ctx.fillStyle=sky;ctx.fillRect(0,0,rect.width,rect.height);
+  const outside=study.devices.find((device)=>device.type==="wall-light");if(outside)drawOutsideLight(outside,isActive(liveEntities.get(outside.entityId)));
   drawRoom();drawFurniture();drawDeviceEffects(time);
   requestAnimationFrame(renderScene);
 }
