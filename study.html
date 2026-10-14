@@ -63,10 +63,22 @@
         </div>
         <div id="study-devices" class="study-devices"></div>
       </section>
+      <p class="model-credit">Sofa model: <a href="https://sketchfab.com/3d-models/ritchie-2-seater-sofa-pearl-grey-c22cbd1022f94aeeb3f011a0b639eb00">Ritchie 2 Seater Sofa</a> by MADE.COM, licensed under <a href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>.</p>
     </section>
   </main>
 
   <script src="config.js"></script>
+  <script>
+    if (new URLSearchParams(location.search).has("preview")) {
+      const showPreviewError = (message) => setTimeout(() => {
+        const target = document.getElementById("login-error");
+        if (target) target.textContent = `Preview error: ${message}`;
+      });
+      window.addEventListener("error", (event) => showPreviewError(event.message));
+      window.addEventListener("unhandledrejection", (event) => showPreviewError(event.reason?.message || event.reason));
+    }
+  </script>
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
   <script src="study-config.js"></script>
   <script type="module" src="study-app.js"></script>
 </body>

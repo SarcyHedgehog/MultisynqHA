@@ -34,6 +34,8 @@
 .study-device strong,.study-device small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .study-device small { color: var(--muted); font-size: .68rem; }
 .device-state { padding: 4px 7px; border: 1px solid #34506d; border-radius: 999px; color: #c3d4e5; font-size: .7rem; }
+.model-credit { margin: 10px 4px 0; color: #71869d; font-size: .68rem; text-align: right; }
+.model-credit a { color: #8ba5bf; }
 @media (max-width: 720px) {
   .study-shell { padding: 8px 8px 28px; }
   .study-header { align-items: flex-start; }

@@ -1,3 +1,5 @@
+import { createStudyScene } from "./study-scene.js";
+
 const EVENT = Object.freeze({ AUTH_REQUEST: 1, AUTH_RESULT: 2, COMMAND_REQUEST: 3, COMMAND_RESULT: 4, SNAPSHOT: 5, BRIDGE_HELLO: 6 });
 const connection = window.PHOTON_HA_CONFIG || {};
 const study = window.PHOTON_HA_STUDY_CONFIG;
@@ -18,6 +20,7 @@ let client;
 let bridgeActor = null;
 let authenticated = false;
 let snapshot = null;
+let threeScene = null;
 const pending = new Map();
 const liveEntities = new Map();
 const previewMode = new URLSearchParams(location.search).has("preview");
@@ -48,6 +51,7 @@ dom.disconnect.addEventListener("click", () => {
   dom.loginPanel.hidden = false;
   setConnection("offline", "Disconnected");
   renderDeviceCards();
+  threeScene?.update(liveEntities);
 });
 
 async function connect(passwordHash) {
@@ -117,6 +121,7 @@ async function connect(passwordHash) {
         for (const entity of content.entities || []) liveEntities.set(entity.entityId, entity);
         setConnection(content.haConnected ? "online" : "warning", content.haConnected ? "Study live from Home Assistant" : "Bridge online; Home Assistant unavailable");
         renderDeviceCards();
+        threeScene?.update(liveEntities);
       }
       if (code === EVENT.COMMAND_RESULT) {
         pending.set(content.requestId, content);
@@ -173,7 +178,12 @@ function deviceIcon(type) {
   return "◆";
 }
 
-// Lightweight canvas renderer: true 3D coordinates with an orbiting orthographic camera.
+// The live view now uses a real WebGL scene. The legacy canvas renderer remains detached as a safe fallback shell.
+const webglCanvas = dom.canvas.cloneNode(true);
+dom.canvas.replaceWith(webglCanvas);
+threeScene = createStudyScene(webglCanvas, study);
+
+// Legacy canvas renderer: kept off-DOM while the WebGL scene is active.
 const ctx = dom.canvas.getContext("2d");
 const camera = { ...study.room.camera };
 let pixelRatio = 1;
@@ -413,6 +423,7 @@ function drawFloorGlow(position,color,radius){const p=project(position),r=radius
 function drawPointGlow(position,color,radius){const p=project(position),r=radius*p.scale;const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);g.addColorStop(0,color);g.addColorStop(1,"rgba(50,150,255,0)");ctx.save();ctx.globalCompositeOperation="screen";ctx.fillStyle=g;ctx.fillRect(p.x-r,p.y-r,r*2,r*2);ctx.restore();}
 
 function renderScene(time=0) {
+  if (!dom.canvas.isConnected) return;
   const rect=dom.canvas.getBoundingClientRect();ctx.clearRect(0,0,rect.width,rect.height);
   const sky=ctx.createLinearGradient(0,0,0,rect.height);sky.addColorStop(0,"#172f44");sky.addColorStop(1,"#08131f");ctx.fillStyle=sky;ctx.fillRect(0,0,rect.width,rect.height);
   const outside=study.devices.find((device)=>device.type==="wall-light");if(outside)drawOutsideLight(outside,isActive(liveEntities.get(outside.entityId)));
@@ -448,6 +459,6 @@ if (previewMode) {
   dom.loginPanel.hidden = true; dom.panel.hidden = false;
   setConnection("warning", "Visual preview · live Home Assistant data is not connected");
 }
-renderDeviceCards();resizeCanvas();requestAnimationFrame(renderScene);
+renderDeviceCards();threeScene.update(liveEntities);resizeCanvas();requestAnimationFrame(renderScene);
 const rememberedCredential=previewMode ? null : getRememberedCredential();
 if(rememberedCredential){dom.remember.checked=true;setConnection("connecting","Reconnecting to the home bridge…");connect(rememberedCredential).catch((error)=>{setRememberedCredential(null);dom.remember.checked=false;dom.loginError.textContent=`${error.message} Please enter the remote password again.`;setConnection("offline","Automatic connection failed");});}

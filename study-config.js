@@ -22,7 +22,7 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { type: "executive-desk", name: "Main desk", position: [5.3, 0.76, 1.45], size: [2.15, 0.09, 0.82], color: "#b9753d" },
     { type: "office-chair", name: "Office chair", position: [5.3, 0.48, 2.18], size: [0.62, 0.96, 0.62], rotation: 0, color: "#3d4a53" },
     { type: "dual-monitors", name: "Desk monitors", position: [5.3, 1.17, 1.18], size: [1.15, 0.48, 0.06], color: "#111820", entityId: "switch.office_standard" },
-    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.1, 0.43, 2.72], size: [1.7, 0.78, 0.78], rotation: 0, color: "#557f5e" },
+    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.5, 0, 2.72], size: [1.82, 0.78, 0.78], rotation: -1.93, color: "#034536" },
     { type: "screen", name: "Display", position: [4.0, 1.35, 0.08], size: [1.1, 0.68, 0.08], color: "#0a1018", entityId: "switch.screen" },
   ],
   devices: [
