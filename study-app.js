@@ -131,7 +131,8 @@ async function connect(passwordHash) {
 }
 
 function renderDeviceCards() {
-  dom.devices.innerHTML = study.devices.map((device) => {
+  const controllableDevices = study.devices.filter((device) => !["presence", "door-sensor", "leak", "temperature"].includes(device.type));
+  dom.devices.innerHTML = controllableDevices.map((device) => {
     const entity = liveEntities.get(device.entityId);
     const active = isActive(entity);
     const available = Boolean(entity?.available);
@@ -226,6 +227,10 @@ function rotateXZ(point, center, angle) {
   return [center[0] + dx * c - dz * s, point[1], center[2] + dx * s + dz * c];
 }
 
+function offsetPosition(center, dx, dy, dz, angle = 0) {
+  return rotateXZ([center[0] + dx, center[1] + dy, center[2] + dz], center, angle);
+}
+
 function box(position, size, color, rotation = 0, edge = "rgba(10,20,30,.35)") {
   const [cx, cy, cz] = position, [sx, sy, sz] = size;
   const raw = [
@@ -249,9 +254,11 @@ function drawRoom() {
   const r = study.room;
   polygon([[0,0,0],[r.width,0,0],[r.width,0,r.depth],[0,0,r.depth]], r.floorColor, "#8b735c");
   for (let x=0; x<=r.width; x+=.5) line3([[x,.006,0],[x,.006,r.depth]], "rgba(224,202,177,.12)", .7);
-  polygon([[0,0,0],[r.width,0,0],[r.width,r.height,0],[0,r.height,0]], r.wallColor, "#c6cdcd", .9);
-  polygon([[0,0,0],[0,0,r.depth],[0,r.height,r.depth],[0,r.height,0]], shade(r.wallColor,-12), "#c6cdcd", .92);
-  polygon([[r.width,0,0],[r.width,0,r.depth],[r.width,r.height,r.depth],[r.width,r.height,0]], shade(r.wallColor,-20), "#c6cdcd", .86);
+  polygon([[0,r.height,0],[r.width,r.height,0],[r.width,r.height,r.depth],[0,r.height,r.depth]], "#e7e8e2", "#f2f3ed", .28);
+  polygon([[0,0,0],[r.width,0,0],[r.width,r.height,0],[0,r.height,0]], r.wallColor, "#c6cdcd", 1);
+  polygon([[0,0,0],[0,0,r.depth],[0,r.height,r.depth],[0,r.height,0]], shade(r.wallColor,-12), "#c6cdcd", 1);
+  polygon([[r.width,0,0],[r.width,0,r.depth],[r.width,r.height,r.depth],[r.width,r.height,0]], shade(r.wallColor,-20), "#c6cdcd", 1);
+  line3([[0,r.height,0],[r.width,r.height,0],[r.width,r.height,r.depth],[0,r.height,r.depth],[0,r.height,0]], "#eef0e9", 3, .95);
   drawOpenings();
 }
 
@@ -263,7 +270,7 @@ function drawOpenings() {
       const color = opening.type.includes("door") ? "#26333d" : "#78b7d1";
       polygon([[x1,bottom,z],[x2,bottom,z],[x2,bottom+opening.height,z],[x1,bottom+opening.height,z]], color, "#d0e3e8", .88);
       if (opening.type === "double-door") line3([[opening.center,bottom,z-.01],[opening.center,bottom+opening.height,z-.01]], "#a6b3ba", 1.2);
-      else { line3([[x1,bottom+opening.height/2,z-.01],[x2,bottom+opening.height/2,z-.01]], "rgba(230,250,255,.7)", 1); line3([[opening.center,bottom,z-.01],[opening.center,bottom+opening.height,z-.01]], "rgba(230,250,255,.7)", 1); }
+      else if (!opening.singlePane) { line3([[x1,bottom+opening.height/2,z-.01],[x2,bottom+opening.height/2,z-.01]], "rgba(230,250,255,.7)", 1); line3([[opening.center,bottom,z-.01],[opening.center,bottom+opening.height,z-.01]], "rgba(230,250,255,.7)", 1); }
     } else {
       const z1=opening.center-opening.width/2, z2=opening.center+opening.width/2, x=-.012;
       polygon([[x,bottom,z1],[x,bottom,z2],[x,bottom+opening.height,z2],[x,bottom+opening.height,z1]], "#78b7d1", "#d0e3e8", .85);
@@ -275,14 +282,48 @@ function drawFurniture() {
   for (const item of study.furniture) {
     const on = isActive(liveEntities.get(item.entityId));
     if (item.type === "rug") { box(item.position,item.size,item.color,item.rotation); continue; }
-    if (item.type === "desk") {
+    if (item.type === "window-table") {
       box(item.position,item.size,item.color,item.rotation);
-      if (item.legs) for (const dx of [-.62,.62]) for (const dz of [-.2,.2]) box([item.position[0]+dx,.36,item.position[2]+dz],[.06,.72,.06],"#34251e");
+      for (const dx of [-.68,.68]) for (const dz of [-.18,.18]) box(offsetPosition(item.position,dx,-.38,dz,item.rotation),[.055,.72,.055],"#8d969b",item.rotation);
+      continue;
+    }
+    if (item.type === "executive-desk") {
+      box(item.position,item.size,item.color,item.rotation);
+      box(offsetPosition(item.position,0,-.28,.26,item.rotation),[item.size[0]*.7,.48,.07],shade(item.color,-15),item.rotation);
+      for (const dx of [-.82,.82]) {
+        box(offsetPosition(item.position,dx,-.38,0,item.rotation),[.075,.72,.075],"#9aa0a3",item.rotation);
+        box(offsetPosition(item.position,dx,-.72,0,item.rotation),[.48,.055,.12],"#8c9295",item.rotation);
+      }
+      continue;
+    }
+    if (item.type === "dual-monitors") {
+      const screenColor = on ? "#3fadd8" : "#17232c";
+      for (const dx of [-.3,.3]) {
+        const screen = offsetPosition(item.position,dx,0,0,item.rotation);
+        box(screen,[.54,.36,.055],screenColor,item.rotation);
+        line3([offsetPosition(screen,0,-.18,0,item.rotation),offsetPosition(screen,0,-.36,0,item.rotation)],"#626d73",4);
+        box(offsetPosition(screen,0,-.38,0,item.rotation),[.26,.025,.18],"#5d666c",item.rotation);
+        if (on) drawPointGlow(screen,"rgba(68,184,239,.36)",.52);
+      }
+      continue;
+    }
+    if (item.type === "office-chair") {
+      box(item.position,[item.size[0],.16,item.size[2]],item.color,item.rotation);
+      box(offsetPosition(item.position,0,.39,.23,item.rotation),[item.size[0],.7,.14],shade(item.color,8),item.rotation);
+      line3([offsetPosition(item.position,0,-.08,0,item.rotation),offsetPosition(item.position,0,-.42,0,item.rotation)],"#55616a",5);
+      for (const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5]) line3([offsetPosition(item.position,0,-.42,0,item.rotation),offsetPosition(item.position,Math.cos(angle)*.3,-.45,Math.sin(angle)*.3,item.rotation)],"#55616a",3);
       continue;
     }
     if (item.type === "screen") {
       box(item.position,item.size,on ? "#1c8ccb" : item.color,item.rotation);
-      if (on) drawPointGlow(item.position,"rgba(65,183,255,.55)",1.25);
+      if (on) drawPointGlow(item.position,"rgba(65,183,255,.72)",1.75);
+      continue;
+    }
+    if (item.type === "rounded-sofa") {
+      box(item.position,item.size,item.color,item.rotation);
+      box(offsetPosition(item.position,0,.39,.25,item.rotation),[item.size[0]*.86,.62,.22],shade(item.color,-6),item.rotation);
+      for (const dx of [-.39,.39]) box(offsetPosition(item.position,dx,.15,-.08,item.rotation),[.7,.18,.55],shade(item.color,10),item.rotation);
+      for (const dx of [-.78,.78]) drawSoftEllipse(offsetPosition(item.position,dx,.18,0,item.rotation),.22,.32,shade(item.color,-2));
       continue;
     }
     box(item.position,item.size,item.color,item.rotation);
@@ -300,24 +341,29 @@ function drawDeviceEffects(time) {
     if (device.type === "led-strip") drawLedStrip(device, active, time);
     if (device.type === "wall-light") drawWallLight(device, active);
     if (device.type === "heater") drawHeater(device, active, time);
-    if (device.type === "presence" && active) drawPulse(device.position,"#55dcff",time);
+    if (device.type === "presence") {
+      drawCeilingSensor(device.position, active);
+      if (active) { drawPulse(device.position,"#55dcff",time); drawPresenceFigure([3.85,0,2.25],time); }
+    }
     if (device.type === "leak") { drawSensor(device.position, active ? "#ff425f" : "#67dafa"); if (active) drawPulse(device.position,"#ff425f",time); }
     if (device.type === "temperature") drawTemperature(device, entity);
-    if (["door-sensor","socket","equipment"].includes(device.type)) drawSensor(device.position, active ? "#58e5a4" : "#71879d");
+    if (device.type === "door-sensor") drawDoorSensor(device.position, active);
   }
 }
 
 function drawGu10Track(device, active) {
   const angle=device.rotation||0, c=Math.cos(angle),s=Math.sin(angle), [x,y,z]=device.position;
   const along=(offset,height=y)=>[x+offset*c,height,z+offset*s];
-  line3([along(-.55),along(.55)],"#26313d",7);
+  box(along(0,study.room.height-.025),[1.25,.05,.09],"#eef0e9",angle);
+  line3([along(-.55,y-.035),along(.55,y-.035)],"#26313d",7);
   for (const offset of [-.43,0,.43]) {
-    const lamp=along(offset,y-.06), floor=along(offset,0.02);
+    line3([along(offset,y-.03),along(offset,y-.12)],"#36434d",3);
+    const lamp=along(offset,y-.16), floor=along(offset,0.02);
     if (active) {
       polygon([[lamp[0]-.07,lamp[1],lamp[2]-.07],[lamp[0]+.07,lamp[1],lamp[2]+.07],[floor[0]+.62,0.02,floor[2]+.62],[floor[0]-.62,0.02,floor[2]-.62]],"#ffe3a1",null,.095);
       drawFloorGlow(floor,"rgba(255,210,118,.48)",.92);
     }
-    box(lamp,[.12,.1,.12],active?"#ffe0a0":"#40505e",angle);
+    box(lamp,[.14,.15,.14],active?"#ffe0a0":"#40505e",angle);
   }
 }
 
@@ -343,6 +389,15 @@ function drawHeater(device, active, time) {
 }
 
 function drawSensor(position,color){const p=project(position);ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,5,0,Math.PI*2);ctx.fillStyle=color;ctx.shadowColor=color;ctx.shadowBlur=10;ctx.fill();ctx.restore();}
+function drawCeilingSensor(position,active){const p=project(position);ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,active?7:6,0,Math.PI*2);ctx.fillStyle=active?"#9ff5e4":"#e7ecec";ctx.strokeStyle="#71858f";ctx.lineWidth=1.5;ctx.shadowColor=active?"#55dcff":"transparent";ctx.shadowBlur=active?12:0;ctx.fill();ctx.stroke();ctx.restore();}
+function drawDoorSensor(position,active){box(position,[.05,.2,.055],active?"#ffb368":"#e7ecec",0);box([position[0]+.07,position[1],position[2]],[.035,.15,.04],"#cbd4d6",0);}
+function drawPresenceFigure(position,time){
+  const p=project(position),bob=Math.sin(time/340)*1.5;
+  ctx.save();ctx.strokeStyle="#67e8f9";ctx.fillStyle="rgba(103,232,249,.28)";ctx.shadowColor="#3bdcf2";ctx.shadowBlur=13;ctx.lineWidth=3;ctx.lineCap="round";
+  ctx.beginPath();ctx.arc(p.x,p.y-31+bob,7,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p.x,p.y-23+bob);ctx.lineTo(p.x,p.y-2+bob);ctx.moveTo(p.x,p.y-16+bob);ctx.lineTo(p.x-10,p.y-7+bob);ctx.moveTo(p.x,p.y-16+bob);ctx.lineTo(p.x+10,p.y-7+bob);ctx.moveTo(p.x,p.y-2+bob);ctx.lineTo(p.x-8,p.y+12+bob);ctx.moveTo(p.x,p.y-2+bob);ctx.lineTo(p.x+8,p.y+12+bob);ctx.stroke();ctx.restore();
+}
+function drawSoftEllipse(position,rx,ry,color){const p=project(position);ctx.save();ctx.fillStyle=color;ctx.strokeStyle="rgba(10,20,30,.35)";ctx.beginPath();ctx.ellipse(p.x,p.y,Math.max(5,rx*p.scale),Math.max(5,ry*p.scale),0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.restore();}
 function drawPulse(position,color,time){const p=project(position),radius=8+(time/40)%18;ctx.save();ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.strokeStyle=color;ctx.globalAlpha=1-(radius-8)/20;ctx.lineWidth=2;ctx.stroke();ctx.restore();}
 function drawTemperature(device,entity){const p=project(device.position);const text=entity?.available?`${entity.state}${entity.unit||"°"}`:"—";ctx.save();ctx.fillStyle="rgba(5,16,28,.82)";ctx.strokeStyle="#4d7898";ctx.lineWidth=1;roundRect(p.x-25,p.y-13,50,26,9);ctx.fill();ctx.stroke();ctx.fillStyle="#eaf5ff";ctx.font="700 11px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(text,p.x,p.y);ctx.restore();}
 function roundRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
@@ -352,7 +407,7 @@ function drawPointGlow(position,color,radius){const p=project(position),r=radius
 function renderScene(time=0) {
   const rect=dom.canvas.getBoundingClientRect();ctx.clearRect(0,0,rect.width,rect.height);
   const sky=ctx.createLinearGradient(0,0,0,rect.height);sky.addColorStop(0,"#172f44");sky.addColorStop(1,"#08131f");ctx.fillStyle=sky;ctx.fillRect(0,0,rect.width,rect.height);
-  drawRoom();drawDeviceEffects(time);drawFurniture();
+  drawRoom();drawFurniture();drawDeviceEffects(time);
   requestAnimationFrame(renderScene);
 }
 
@@ -377,7 +432,7 @@ function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,(characte
 
 if (previewMode) {
   for (const device of study.devices) liveEntities.set(device.entityId, {
-    entityId: device.entityId, state: ["gu10-track", "floor-lamp", "led-strip", "screen", "heater", "presence"].includes(device.type) ? "on" : "off",
+    entityId: device.entityId, state: ["gu10-track", "floor-lamp", "led-strip", "screen", "equipment", "heater", "presence"].includes(device.type) ? "on" : "off",
     available: true, writable: false, unit: device.type === "temperature" ? "°C" : "", control: { type: "read_only" },
   });
   liveEntities.get("sensor.study_door_device_temperature").state = "21.4";
