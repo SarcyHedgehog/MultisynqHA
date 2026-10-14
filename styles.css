@@ -13,6 +13,9 @@ button { cursor:pointer; }
 .panel,.entity-card,.picker-row { background:linear-gradient(145deg,rgba(21,36,58,.96),rgba(12,24,40,.96)); border:1px solid var(--line); border-radius:18px; box-shadow:0 14px 35px rgba(0,0,0,.22); }
 .panel { padding:18px; }
 .status { padding:7px 11px; border:1px solid var(--line); border-radius:999px; font-size:.78rem; font-weight:800; white-space:nowrap; }
+.hero-actions { display:flex; align-items:center; gap:8px; }
+.view-link { display:inline-grid; place-items:center; min-height:34px; padding:6px 10px; color:var(--text); border:1px solid var(--line); border-radius:999px; text-decoration:none; font-size:.78rem; font-weight:800; }
+.view-link:hover { border-color:var(--cyan); }
 .status.online { color:#071b13; background:var(--green); border-color:var(--green); }.status.offline { color:#fff; background:#5b2632; }.status.connecting,.status.warning { color:#241700; background:var(--amber); border-color:var(--amber); }
 input,select { width:100%; min-height:44px; color:var(--text); background:#091523; border:1px solid var(--line); border-radius:11px; padding:10px 12px; }
 input:focus,select:focus { outline:2px solid var(--cyan); outline-offset:1px; }

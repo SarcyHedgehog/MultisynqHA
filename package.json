@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "bridge": "node photon-bridge.mjs",
-    "check": "node --check photon-bridge.mjs && node --check remote-app.js && node --check admin-app.js",
+    "check": "node --check photon-bridge.mjs && node --check remote-app.js && node --check study-app.js && node --check study-config.js && node --check admin-app.js",
     "test:integration": "node tests/integration.mjs"
   },
   "dependencies": {

@@ -25,6 +25,8 @@ Entity picker and access policy
 
 - `photon-bridge.mjs` - authoritative Photon/HA bridge and local admin server.
 - `public-app.html` / `remote-app.js` - responsive remote-user webpage.
+- `study.html` / `study-app.js` - alternate rotatable Study digital-twin view.
+- `study-config.js` - Study-only room, furniture, device and visual-effect mapping.
 - `admin.html` / `admin-app.js` - local-only entity picker.
 - `styles.css` - shared responsive design.
 - `vendor/photon.min.js` - the same Photon JavaScript SDK proven by VoteTogether.
@@ -77,6 +79,13 @@ The bridge will:
 - All other domains can be exposed read-only.
 
 The picker is capped at 100 exposed entities in this version to keep Photon snapshots comfortably small.
+
+## Alternate Study view
+
+`study.html` uses the same authenticated Photon connection as the standard remote but has an independent
+visual configuration in `study-config.js`. The Study configuration cannot expose an entity by itself: every
+entity it references must also be selected in the local administrator picker. This keeps the bridge allow-list
+as the security boundary while allowing the room geometry and presentation to evolve independently.
 
 ## Security boundaries
 
