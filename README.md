@@ -68,6 +68,23 @@ The bridge will:
 6. validate and execute authenticated remote requests;
 7. publish updated state back to connected remote pages.
 
+## Restarting the Home Assistant add-on
+
+If a remote page reports **Game does not exist**, Photon cannot find the private room created by the
+bridge. This happens before password authentication and normally means the add-on has lost its Photon
+connection even though Home Assistant may still show the add-on as started.
+
+To restart it in Home Assistant:
+
+1. Open **Settings**.
+2. Open **Apps** (called **Add-ons** in older Home Assistant versions).
+3. Select **Photon HA Bridge**.
+4. Open the app information page and press **Restart**.
+5. Wait until its status returns to **Running**, then reload the remote webpage.
+
+The restart does not erase the selected entities or change the remote password. The add-on is configured
+to start automatically with Home Assistant.
+
 ## Supported controls
 
 - Toggle: lights, switches, input booleans, fans, and automations.
