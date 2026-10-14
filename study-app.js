@@ -136,7 +136,7 @@ async function connect(passwordHash) {
 }
 
 function renderDeviceCards() {
-  const controllableDevices = study.devices.filter((device) => !["presence", "door-sensor", "leak", "temperature"].includes(device.type));
+  const controllableDevices = study.devices.filter((device) => !["presence", "door-sensor", "leak", "temperature", "ambient-light"].includes(device.type));
   dom.devices.innerHTML = controllableDevices.map((device) => {
     const entity = liveEntities.get(device.entityId);
     const active = isActive(entity);
@@ -146,7 +146,7 @@ function renderDeviceCards() {
     const canToggle = available && entity.writable && entity.control?.type === "toggle";
     return `<button type="button" class="study-device${active ? " active" : ""}${available ? "" : " unavailable"}" data-entity="${escapeHtml(device.entityId)}" ${canToggle ? "" : "disabled"}>
       <span class="study-device-icon" aria-hidden="true">${icon}</span>
-      <span><strong>${escapeHtml(device.name)}</strong><small>${escapeHtml(device.type.replaceAll("-", " "))}</small></span>
+      <span><strong>${escapeHtml(device.name)}</strong></span>
       <span class="device-state">${escapeHtml(state)}</span>
     </button>`;
   }).join("");
@@ -456,6 +456,9 @@ if (previewMode) {
     available: true, writable: false, unit: device.type === "temperature" ? "°C" : "", control: { type: "read_only" },
   });
   liveEntities.get("sensor.study_door_device_temperature").state = "21.4";
+  liveEntities.get("sensor.front_drive_motion_illuminance").state = "650";
+  liveEntities.get("light.rgb_strip_lights").attributes = { rgb_color: [255, 42, 166], brightness: 190 };
+  liveEntities.get("binary_sensor.study_door_contact").state = "open";
   dom.loginPanel.hidden = true; dom.panel.hidden = false;
   setConnection("warning", "Visual preview · live Home Assistant data is not connected");
 }

@@ -19,10 +19,10 @@ window.PHOTON_HA_STUDY_CONFIG = {
   furniture: [
     { type: "rug", name: "Rug", position: [4.25, 0.015, 2.15], size: [3.5, 0.03, 1.75], color: "#33465a" },
     { type: "window-table", name: "Window table", position: [6.4, 0.74, 0.42], size: [1.65, 0.09, 0.5], color: "#b9bec1" },
-    { type: "executive-desk", name: "Main desk", position: [5.3, 0.76, 1.45], size: [2.15, 0.09, 0.82], color: "#b9753d" },
-    { type: "office-chair", name: "Office chair", position: [5.3, 0.48, 2.18], size: [0.62, 0.96, 0.62], rotation: 0, color: "#3d4a53" },
-    { type: "dual-monitors", name: "Desk monitors", position: [5.3, 1.17, 1.18], size: [1.15, 0.48, 0.06], color: "#111820", entityId: "switch.office_standard" },
-    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.5, 0, 2.72], size: [1.82, 0.78, 0.78], rotation: -1.93, color: "#034536" },
+    { type: "executive-desk", name: "Main desk", position: [5.3, 0.76, 2.05], size: [2.15, 0.09, 0.82], color: "#b9753d", returnSide: "right" },
+    { type: "office-chair", name: "Office chair", position: [5.3, 0.48, 3.22], size: [0.62, 0.96, 0.62], rotation: 0, color: "#3d4a53" },
+    { type: "dual-monitors", name: "Desk monitors", position: [5.3, 1.17, 1.78], size: [1.15, 0.48, 0.06], color: "#111820", entityId: "switch.office_standard" },
+    { type: "rounded-sofa", name: "Green two-seat sofa", position: [1.5, 0, 2.72], size: [1.82, 0.78, 0.78], rotation: -2.3562, color: "#034536" },
     { type: "screen", name: "Display", position: [4.0, 1.35, 0.08], size: [1.1, 0.68, 0.08], color: "#0a1018", entityId: "switch.screen" },
   ],
   devices: [
@@ -38,5 +38,6 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { entityId: "binary_sensor.study_door_contact", name: "Study door", type: "door-sensor", position: [1.6, 1.05, 0.03] },
     { entityId: "binary_sensor.study_leak_detector_water_leak", name: "Leak detector", type: "leak", position: [5.2, 0.04, 0.4], effect: "alert" },
     { entityId: "sensor.study_door_device_temperature", name: "Room temperature", type: "temperature", position: [1.6, 1.72, 0.12] },
+    { entityId: "sensor.front_drive_motion_illuminance", name: "Outdoor light level", type: "ambient-light" },
   ],
 };
