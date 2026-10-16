@@ -34,10 +34,10 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { entityId: "fan.office_heater", name: "Office heater", type: "heater", position: [3.8, 0, 1.8], effect: "heat" },
     { entityId: "switch.screen", name: "Screen", type: "screen", position: [4.0, 1.35, 0.08], effect: "screen-glow" },
     { entityId: "switch.office_standard", name: "Office monitors", type: "equipment", position: [6.72, 1.17, 1.18], effect: "monitor-glow" },
-    { entityId: "binary_sensor.studypresence_occupancy", name: "Presence", type: "presence", position: [3.6, 2.42, 3.0], effect: "presence" },
+    { entityId: "binary_sensor.studypresence_occupancy", name: "Presence", type: "presence", position: [3.02, 1.56, 0.04], effect: "presence" },
     { entityId: "binary_sensor.study_door_contact", name: "Study door", type: "door-sensor", position: [1.6, 1.05, 0.03] },
     { entityId: "binary_sensor.study_leak_detector_water_leak", name: "Leak detector", type: "leak", position: [5.2, 0.04, 0.4], effect: "alert" },
-    { entityId: "sensor.study_door_device_temperature", name: "Room temperature", type: "temperature", position: [1.6, 1.72, 0.12] },
+    { entityId: "sensor.study_door_device_temperature", name: "Room temperature", type: "temperature", position: [2.63, 1.56, 0.04] },
     { entityId: "sensor.back_garden_motion_illuminance", name: "Outdoor light level", type: "ambient-light" },
   ],
 };
