@@ -74,7 +74,7 @@ async function connect(passwordHash) {
       authRequested = true;
       bridgeActor = actorNr;
       setConnection("connecting", "Authenticating with the home bridge…");
-      client.raiseEvent(EVENT.AUTH_REQUEST, { passwordHash }, {
+      client.raiseEvent(EVENT.AUTH_REQUEST, { view: "remote", passwordHash }, {
         targetActors: [bridgeActor],
       });
     };

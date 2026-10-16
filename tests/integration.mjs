@@ -12,7 +12,8 @@ const originalConfig = fs.readFileSync(configPath, "utf8");
 const originalExposed = fs.readFileSync(exposedPath, "utf8");
 const baseConfig = JSON.parse(originalConfig);
 const roomName = `photon-ha-test-${Date.now()}`;
-const password = `test-${crypto.randomUUID()}`;
+const remotePassword = `remote-${crypto.randomUUID()}`;
+const studyPassword = `study-${crypto.randomUUID()}`;
 const calls = [];
 let bridgeProcess;
 let wss;
@@ -71,7 +72,7 @@ async function photonRemoteTest() {
   const client = new Client(Photon.ConnectionProtocol.Wss, baseConfig.photonAppId, "photon-ha-1");
   client.setUserId(`integration-${crypto.randomUUID()}`);
   client.setLogLevel(Photon.LogLevel.WARN);
-  const passwordHash = crypto.createHash("sha256").update(password).digest("hex");
+  const passwordHash = crypto.createHash("sha256").update(remotePassword).digest("hex");
   let bridgeActor;
   let authenticated = false;
   let sawOnState = false;
@@ -88,7 +89,7 @@ async function photonRemoteTest() {
       const bridge = client.myRoomActorsArray().find((actor) => actor.getCustomProperty("pha_role") === "bridge");
       if (!bridge) return reject(new Error("Bridge actor was not discoverable"));
       bridgeActor = bridge.actorNr;
-      client.raiseEvent(1, { passwordHash }, { targetActors: [bridgeActor] });
+      client.raiseEvent(1, { view: "remote", passwordHash }, { targetActors: [bridgeActor] });
     };
     client.onEvent = (code, content, actorNr) => {
       console.log(`Remote event code=${code} actor=${actorNr}`);
@@ -113,19 +114,85 @@ async function photonRemoteTest() {
   await done;
 }
 
+async function photonStudyRestrictionTest() {
+  const Photon = globalThis.Photon;
+  const Client = Photon.LoadBalancing.LoadBalancingClient;
+  const client = new Client(Photon.ConnectionProtocol.Wss, baseConfig.photonAppId, "photon-ha-1");
+  client.setUserId(`study-integration-${crypto.randomUUID()}`);
+  client.setLogLevel(Photon.LogLevel.WARN);
+  const passwordHash = crypto.createHash("sha256").update(studyPassword).digest("hex");
+  let bridgeActor;
+  let authenticated = false;
+  let commandSent = false;
+  const done = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Study profile integration timed out")), 30000);
+    client.onStateChange = (value) => {
+      if (value === Client.State.JoinedLobby) client.joinRoom(roomName, { createIfNotExists: false });
+    };
+    client.onJoinRoom = () => {
+      const bridge = client.myRoomActorsArray().find((actor) => actor.getCustomProperty("pha_role") === "bridge");
+      if (!bridge) return reject(new Error("Bridge actor was not discoverable for Study"));
+      bridgeActor = bridge.actorNr;
+      client.raiseEvent(1, { view: "study", passwordHash }, { targetActors: [bridgeActor] });
+    };
+    client.onEvent = (code, content, actorNr) => {
+      if (code === 2 && content.ok) {
+        authenticated = true;
+        bridgeActor = content.bridgeActor || actorNr;
+        if (content.profile !== "study") return reject(new Error("Study authenticated against the wrong profile"));
+      }
+      if (authenticated && actorNr === bridgeActor && code === 5 && !commandSent) {
+        const ids = content.entities.map((entity) => entity.entityId);
+        if (ids.length !== 1 || ids[0] !== "sensor.test_temperature") {
+          return reject(new Error(`Study received entities outside its profile: ${ids.join(", ")}`));
+        }
+        commandSent = true;
+        client.raiseEvent(3, { requestId: "study-forbidden", entityId: "switch.heater", action: "toggle" }, { targetActors: [bridgeActor] });
+      }
+      if (actorNr === bridgeActor && code === 4 && content.requestId === "study-forbidden") {
+        if (content.ok || content.message !== "Entity is not available in this view") {
+          return reject(new Error("Study was allowed to control an entity outside its profile"));
+        }
+        clearTimeout(timer);
+        resolve();
+        client.disconnect();
+      }
+    };
+    client.onError = (_code, message) => reject(new Error(message));
+    client.onOperationResponse = (code, message) => { if (code) reject(new Error(`Photon operation ${code}: ${message}`)); };
+  });
+  client.connectToNameServer({ region: baseConfig.photonRegion || "eu" });
+  await done;
+}
+
 try {
   await startFakeHa();
-  const testConfig = { ...baseConfig, roomName, remotePassword: password, haWebSocketUrl: "ws://127.0.0.1:18123", haToken: "integration-token", adminPort: 18765 };
+  const testConfig = {
+    ...baseConfig,
+    roomName,
+    remotePassword,
+    accessProfiles: {
+      remote: { password: remotePassword, entities: "all" },
+      study: { password: studyPassword, entities: ["sensor.test_temperature"] },
+    },
+    haWebSocketUrl: "ws://127.0.0.1:18123",
+    haToken: "integration-token",
+    adminPort: 18765,
+  };
   fs.writeFileSync(configPath, JSON.stringify(testConfig, null, 2));
-  fs.writeFileSync(exposedPath, JSON.stringify({ version: 1, entities: [{ entityId: "switch.heater", name: "Heater", writable: true }] }, null, 2));
+  fs.writeFileSync(exposedPath, JSON.stringify({ version: 1, entities: [
+    { entityId: "switch.heater", name: "Heater", writable: true },
+    { entityId: "sensor.test_temperature", name: "Temperature", writable: false },
+  ] }, null, 2));
   bridgeProcess = spawn(process.execPath, ["photon-bridge.mjs"], { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
   await waitForOutput(bridgeProcess, "Local entity picker:");
   const status = await fetch("http://127.0.0.1:18765/api/status").then((response) => response.json());
   const entities = await fetch("http://127.0.0.1:18765/api/entities").then((response) => response.json());
   if (!status.haConnected || entities.length !== 2) throw new Error("Admin discovery test failed");
   await photonRemoteTest();
+  await photonStudyRestrictionTest();
   if (calls.length !== 1 || calls[0].domain !== "switch" || calls[0].service !== "toggle") throw new Error("HA service routing test failed");
-  console.log("INTEGRATION_OK: HA discovery, admin API, Photon auth, command routing, and confirmed state sync.");
+  console.log("INTEGRATION_OK: HA discovery, per-view auth, snapshot filtering, command denial, command routing, and confirmed state sync.");
 } finally {
   bridgeProcess?.kill();
   await new Promise((resolve) => wss?.close(resolve));

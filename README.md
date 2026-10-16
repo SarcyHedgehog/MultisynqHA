@@ -99,16 +99,18 @@ The picker is capped at 100 exposed entities in this version to keep Photon snap
 
 ## Alternate Study view
 
-`study.html` uses the same authenticated Photon connection as the standard remote but has an independent
-visual configuration in `study-config.js`. The Study configuration cannot expose an entity by itself: every
-entity it references must also be selected in the local administrator picker. This keeps the bridge allow-list
-as the security boundary while allowing the room geometry and presentation to evolve independently.
+`study.html` uses the same Photon room and bridge as the standard remote, but authenticates against its own
+`study` access profile and stores its remembered credential separately. Its visual configuration lives in
+`study-config.js`. Every entity it references must be selected in the local administrator picker and included
+in the Study profile. The bridge filters snapshots and rejects commands outside that profile, so the browser
+cannot escape the view's allow-list by sending a modified request.
 
 ## Security boundaries
 
 - `PHOTON_APP_ID` is a public application identifier and is safe in `config.js`.
-- `haToken` and `remotePassword` belong only in `bridge.config.json`.
-- The bridge rejects commands for entities that are absent from the local allow-list.
+- `haToken` and access-profile passwords belong only in `bridge.config.json`.
+- The bridge rejects commands for entities that are absent from either the local allow-list or the caller's
+  authenticated access profile.
 - The public client accepts authoritative snapshots only from the bridge actor that authenticated it.
 - Photon transport uses WSS.
 - The room-password protocol protects this private proof of concept from ordinary unauthorised access.

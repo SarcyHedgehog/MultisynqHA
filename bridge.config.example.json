@@ -3,7 +3,30 @@
   "photonRegion": "eu",
   "photonSdkPath": "vendor/photon.min.js",
   "roomName": "photon-ha-home",
-  "remotePassword": "replace-with-a-long-unique-password",
+  "accessProfiles": {
+    "remote": {
+      "password": "replace-with-a-long-unique-password",
+      "entities": "all"
+    },
+    "study": {
+      "password": "replace-with-a-different-long-password",
+      "entities": [
+        "light.office_light_switch_l1",
+        "light.office_light_switch_l2",
+        "light.office_standard_lamp",
+        "light.rgb_strip_lights",
+        "light.office_light_switch_l3",
+        "fan.office_heater",
+        "switch.screen",
+        "switch.office_standard",
+        "binary_sensor.studypresence_occupancy",
+        "binary_sensor.study_door_contact",
+        "binary_sensor.study_leak_detector_water_leak",
+        "sensor.study_door_device_temperature",
+        "sensor.back_garden_motion_illuminance"
+      ]
+    }
+  },
   "haWebSocketUrl": "ws://homeassistant:8123/api/websocket",
   "haToken": "paste-a-long-lived-home-assistant-token-here",
   "adminHost": "127.0.0.1",

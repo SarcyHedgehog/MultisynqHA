@@ -3,7 +3,7 @@ import { createStudyScene } from "./study-scene.js";
 const EVENT = Object.freeze({ AUTH_REQUEST: 1, AUTH_RESULT: 2, COMMAND_REQUEST: 3, COMMAND_RESULT: 4, SNAPSHOT: 5, BRIDGE_HELLO: 6 });
 const connection = window.PHOTON_HA_CONFIG || {};
 const study = window.PHOTON_HA_STUDY_CONFIG;
-const REMEMBERED_KEY = "photon-ha-remote-access-key";
+const REMEMBERED_KEY = "photon-ha-study-access-key";
 
 if (!study) throw new Error("Study configuration is missing.");
 
@@ -72,7 +72,7 @@ async function connect(passwordHash) {
       authRequested = true;
       bridgeActor = actorNr;
       setConnection("connecting", "Authenticating with the home bridge…");
-      client.raiseEvent(EVENT.AUTH_REQUEST, { passwordHash }, { targetActors: [bridgeActor] });
+      client.raiseEvent(EVENT.AUTH_REQUEST, { view: "study", passwordHash }, { targetActors: [bridgeActor] });
     };
     const findBridge = () => client.myRoomActorsArray?.().find((actor) => actor.getCustomProperty?.("pha_role") === "bridge");
     client.onStateChange = (state) => {
