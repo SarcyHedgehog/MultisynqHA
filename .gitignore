@@ -16,3 +16,10 @@ node_modules/
 .idea/
 /models/ritchie_2_seater_sofa_pearl_grey/
 /models/ritchie_2_seater_sofa_pearl_grey.zip
+/models/*.zip
+/models/office_chair/
+/models/office_home_black_chair/
+/models/persian_malayer_carpet/
+/models/modern_outdoor_bollard_light/
+/models/dual_monitor/
+/models/television_wall-mounted/

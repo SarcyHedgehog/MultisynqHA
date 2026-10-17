@@ -1,0 +1,11 @@
+Model Information:
+* title:	Dual Monitor
+* source:	https://sketchfab.com/3d-models/dual-monitor-4bd13b36bbf14ae19c34fb026409acb5
+* author:	ReegeChris (https://sketchfab.com/ReegeChris)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Dual Monitor" (https://sketchfab.com/3d-models/dual-monitor-4bd13b36bbf14ae19c34fb026409acb5) by ReegeChris (https://sketchfab.com/ReegeChris) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

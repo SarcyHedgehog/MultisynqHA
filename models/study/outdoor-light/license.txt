@@ -1,0 +1,11 @@
+Model Information:
+* title:	Modern Outdoor Bollard Light
+* source:	https://sketchfab.com/3d-models/modern-outdoor-bollard-light-da027f300b8541519dc1dc84f4f42468
+* author:	Parth (https://sketchfab.com/ptl.king)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Modern Outdoor Bollard Light" (https://sketchfab.com/3d-models/modern-outdoor-bollard-light-da027f300b8541519dc1dc84f4f42468) by Parth (https://sketchfab.com/ptl.king) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
