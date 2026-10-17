@@ -32,6 +32,29 @@ export function createStudyScene(canvas, config) {
   const material=(color,o={})=>new THREE.MeshStandardMaterial({color,roughness:o.roughness??.7,metalness:o.metalness??0,emissive:o.emissive??0x000000,emissiveIntensity:o.emissiveIntensity??0});
   const addMesh=(geometry,mat,position,parent=scene)=>{const m=new THREE.Mesh(geometry,mat);m.position.set(...position);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;};
 
+  function makeWallBadge(position,width,height,paint) {
+    const canvas=document.createElement("canvas");canvas.width=256;canvas.height=128;
+    const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+    const group=new THREE.Group();group.position.set(...position);scene.add(group);
+    addMesh(new THREE.BoxGeometry(width+.035,height+.035,.035),material(0x142331,{metalness:.25}),[0,0,0],group).castShadow=false;
+    const face=addMesh(new THREE.PlaneGeometry(width,height),new THREE.MeshBasicMaterial({map:texture,transparent:true}),[0,0,.022],group);face.castShadow=false;
+    const draw=value=>{const ctx=canvas.getContext("2d");ctx.clearRect(0,0,256,128);paint(ctx,value);texture.needsUpdate=true;};
+    return {group,draw};
+  }
+
+  function addWallStatus() {
+    const temperature=config.devices.find(x=>x.type==="temperature");
+    if(temperature){
+      const badge=makeWallBadge(temperature.position,.46,.23,(ctx,value)=>{ctx.fillStyle="#0b1825";ctx.fillRect(0,0,256,128);ctx.strokeStyle="#3e789b";ctx.lineWidth=6;ctx.strokeRect(3,3,250,122);ctx.fillStyle="#eaf7ff";ctx.font="700 49px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(value||"—",128,66);});
+      badge.draw("—");bind(temperature.entityId,(_on,e)=>badge.draw(e?.available?`${e.state}${e.unit||"°C"}`:"—"));
+    }
+    const presence=config.devices.find(x=>x.type==="presence");
+    if(presence){
+      const badge=makeWallBadge(presence.position,.23,.23,ctx=>{ctx.strokeStyle="#60edff";ctx.fillStyle="#60edff";ctx.lineWidth=12;ctx.lineCap="round";ctx.beginPath();ctx.arc(128,30,17,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(128,55);ctx.lineTo(128,88);ctx.moveTo(128,64);ctx.lineTo(91,80);ctx.moveTo(128,64);ctx.lineTo(165,80);ctx.moveTo(128,88);ctx.lineTo(101,119);ctx.moveTo(128,88);ctx.lineTo(155,119);ctx.stroke();});
+      badge.draw();badge.group.visible=false;bind(presence.entityId,on=>badge.group.visible=on);
+    }
+  }
+
   function addLiveEffects() {
     const trackEntities=["light.office_light_switch_l1","light.office_light_switch_l2"];
     for(const [index,id] of trackEntities.entries()){
@@ -90,7 +113,7 @@ export function createStudyScene(canvas, config) {
 
   new GLTFLoader().load("models/study/study.glb",gltf=>{
     gltf.scene.traverse(object=>{nodes.set(object.name,object);if(object.name.includes("Furniture_Sofa_REPLACEABLE")||object.userData?.source==="placeholder"){sofaPlaceholder=object;object.visible=false;}if(object.isMesh){object.castShadow=true;object.receiveShadow=true;}});
-    scene.add(gltf.scene);addLiveEffects();replaceSofaPlaceholder().catch(error=>{if(sofaPlaceholder)sofaPlaceholder.visible=true;console.error("Could not load the detailed Study sofa",error);});loaded=true;apply(latestEntities);
+    scene.add(gltf.scene);addLiveEffects();addWallStatus();replaceSofaPlaceholder().catch(error=>{if(sofaPlaceholder)sofaPlaceholder.visible=true;console.error("Could not load the detailed Study sofa",error);});loaded=true;apply(latestEntities);
   },undefined,error=>console.error("Could not load the Blender Study model",error));
 
   function updateDaylight(entities){const e=entities.get("sensor.back_garden_motion_illuminance"),lux=Math.max(0,Number(e?.state)||0),day=lux<=60?0:Math.max(0,Math.min(1,(Math.log10(lux+1)-Math.log10(61))/2.2));hemisphere.intensity=.25+1.1*day;sun.intensity=.05+2.15*day;renderer.toneMappingExposure=.7+.3*day;const sky=new THREE.Color(0x020711).lerp(new THREE.Color(0x0f2c43),day);scene.background.copy(sky);scene.fog.color.copy(sky);}
