@@ -26,6 +26,7 @@ export function createStudyScene(canvas, config) {
   const effects = new Map();
   let latestEntities = new Map();
   let loaded = false;
+  let sofaPlaceholder = null;
   const bind=(id,fn)=>{if(!effects.has(id))effects.set(id,[]);effects.get(id).push(fn);};
   const active=e=>e?.available&&["on","open","detected","heat"].includes(String(e.state).toLowerCase());
   const material=(color,o={})=>new THREE.MeshStandardMaterial({color,roughness:o.roughness??.7,metalness:o.metalness??0,emissive:o.emissive??0x000000,emissiveIntensity:o.emissiveIntensity??0});
@@ -85,12 +86,11 @@ export function createStudyScene(canvas, config) {
     model.scale.setScalar(scale);bounds=new THREE.Box3().setFromObject(model);const center=bounds.getCenter(new THREE.Vector3());
     const wrapper=new THREE.Group();wrapper.name="Furniture_Sofa_Detailed";wrapper.position.set(...item.position);wrapper.rotation.y=item.rotation||0;
     model.position.set(-center.x,-bounds.min.y,-center.z);wrapper.add(model);scene.add(wrapper);
-    const placeholder=nodes.get("Furniture_Sofa_REPLACEABLE");if(placeholder)placeholder.visible=false;
   }
 
   new GLTFLoader().load("models/study/study.glb",gltf=>{
-    gltf.scene.traverse(object=>{nodes.set(object.name,object);if(object.isMesh){object.castShadow=true;object.receiveShadow=true;}});
-    scene.add(gltf.scene);addLiveEffects();replaceSofaPlaceholder().catch(error=>console.error("Could not load the detailed Study sofa",error));loaded=true;apply(latestEntities);
+    gltf.scene.traverse(object=>{nodes.set(object.name,object);if(object.name.includes("Furniture_Sofa_REPLACEABLE")||object.userData?.source==="placeholder"){sofaPlaceholder=object;object.visible=false;}if(object.isMesh){object.castShadow=true;object.receiveShadow=true;}});
+    scene.add(gltf.scene);addLiveEffects();replaceSofaPlaceholder().catch(error=>{if(sofaPlaceholder)sofaPlaceholder.visible=true;console.error("Could not load the detailed Study sofa",error);});loaded=true;apply(latestEntities);
   },undefined,error=>console.error("Could not load the Blender Study model",error));
 
   function updateDaylight(entities){const e=entities.get("sensor.back_garden_motion_illuminance"),lux=Math.max(0,Number(e?.state)||0),day=lux<=60?0:Math.max(0,Math.min(1,(Math.log10(lux+1)-Math.log10(61))/2.2));hemisphere.intensity=.25+1.1*day;sun.intensity=.05+2.15*day;renderer.toneMappingExposure=.7+.3*day;const sky=new THREE.Color(0x020711).lerp(new THREE.Color(0x0f2c43),day);scene.background.copy(sky);scene.fog.color.copy(sky);}

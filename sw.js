@@ -1,4 +1,4 @@
-const CACHE = "home-remote-v5";
+const CACHE = "home-remote-v6";
 const SHELL = [
   "./public-app.html", "./study.html", "./study-model.html", "./styles.css", "./study.css",
   "./config.js", "./remote-app.js", "./study-app.js", "./study-config.js", "./study-scene.js", "./study-model-scene.js",
