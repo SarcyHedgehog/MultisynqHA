@@ -66,9 +66,31 @@ export function createStudyScene(canvas, config) {
   function setGlow(name,on,color,intensity){const object=nodes.get(name);if(!object)return;ownMaterial(object);object.material.color.setHex(on?color:0x071016);object.material.emissive.setHex(color);object.material.emissiveIntensity=on?intensity:0;}
   function entityColor(entity){const a=entity?.attributes||{};if(Array.isArray(a.rgb_color))return new THREE.Color(a.rgb_color[0]/255,a.rgb_color[1]/255,a.rgb_color[2]/255);if(Array.isArray(a.hs_color))return new THREE.Color().setHSL((a.hs_color[0]%360)/360,Math.min(1,a.hs_color[1]/100),.55);return new THREE.Color(0xff2aa6);}
 
+  async function replaceSofaPlaceholder() {
+    const item=config.furniture.find(x=>x.type==="rounded-sofa");
+    if(!item)return;
+    const gltf=await new GLTFLoader().loadAsync("models/ritchie-sofa/scene.gltf");
+    const model=gltf.scene,staging=[];
+    model.traverse(object=>{
+      if(object.name==="FLOOR"||object.name==="Plane001")staging.push(object);
+      if(object.isMesh){
+        object.castShadow=true;object.receiveShadow=true;
+        if(object.name==="FABRIC"||object.name==="BUTTONS"){
+          object.material=object.material.clone();object.material.color.set(item.color||0x034536);object.material.roughness=.88;object.material.metalness=0;
+        }
+      }
+    });
+    staging.forEach(object=>object.removeFromParent());
+    let bounds=new THREE.Box3().setFromObject(model),size=bounds.getSize(new THREE.Vector3()),scale=item.size[0]/Math.max(size.x,size.z);
+    model.scale.setScalar(scale);bounds=new THREE.Box3().setFromObject(model);const center=bounds.getCenter(new THREE.Vector3());
+    const wrapper=new THREE.Group();wrapper.name="Furniture_Sofa_Detailed";wrapper.position.set(...item.position);wrapper.rotation.y=item.rotation||0;
+    model.position.set(-center.x,-bounds.min.y,-center.z);wrapper.add(model);scene.add(wrapper);
+    const placeholder=nodes.get("Furniture_Sofa_REPLACEABLE");if(placeholder)placeholder.visible=false;
+  }
+
   new GLTFLoader().load("models/study/study.glb",gltf=>{
     gltf.scene.traverse(object=>{nodes.set(object.name,object);if(object.isMesh){object.castShadow=true;object.receiveShadow=true;}});
-    scene.add(gltf.scene);addLiveEffects();loaded=true;apply(latestEntities);
+    scene.add(gltf.scene);addLiveEffects();replaceSofaPlaceholder().catch(error=>console.error("Could not load the detailed Study sofa",error));loaded=true;apply(latestEntities);
   },undefined,error=>console.error("Could not load the Blender Study model",error));
 
   function updateDaylight(entities){const e=entities.get("sensor.back_garden_motion_illuminance"),lux=Math.max(0,Number(e?.state)||0),day=lux<=60?0:Math.max(0,Math.min(1,(Math.log10(lux+1)-Math.log10(61))/2.2));hemisphere.intensity=.25+1.1*day;sun.intensity=.05+2.15*day;renderer.toneMappingExposure=.7+.3*day;const sky=new THREE.Color(0x020711).lerp(new THREE.Color(0x0f2c43),day);scene.background.copy(sky);scene.fog.color.copy(sky);}
