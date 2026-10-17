@@ -1,4 +1,5 @@
-import { createStudyScene } from "./study-scene.js";
+const sceneModule = document.body.dataset.sceneModule || "./study-scene.js";
+const { createStudyScene } = await import(sceneModule);
 
 const EVENT = Object.freeze({ AUTH_REQUEST: 1, AUTH_RESULT: 2, COMMAND_REQUEST: 3, COMMAND_RESULT: 4, SNAPSHOT: 5, BRIDGE_HELLO: 6 });
 const connection = window.PHOTON_HA_CONFIG || {};

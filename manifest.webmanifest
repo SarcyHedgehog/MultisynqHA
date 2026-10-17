@@ -14,6 +14,7 @@
     { "src": "icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "shortcuts": [
-    { "name": "3D Study", "short_name": "Study", "url": "study.html" }
+    { "name": "3D Study", "short_name": "Study", "url": "study.html" },
+    { "name": "Blender Study", "short_name": "GLB Study", "url": "study-model.html" }
   ]
 }

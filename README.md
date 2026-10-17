@@ -26,6 +26,7 @@ Entity picker and access policy
 - `photon-bridge.mjs` - authoritative Photon/HA bridge and local admin server.
 - `public-app.html` / `remote-app.js` - responsive remote-user webpage.
 - `study.html` / `study-app.js` - alternate rotatable Study digital-twin view.
+- `study-model.html` / `study-model-scene.js` - parallel Study view loaded from an editable GLB model.
 - `study-config.js` - Study-only room, furniture, device and visual-effect mapping.
 - `admin.html` / `admin-app.js` - local-only entity picker.
 - `styles.css` - shared responsive design.
@@ -104,6 +105,24 @@ The picker is capped at 100 exposed entities in this version to keep Photon snap
 `study-config.js`. Every entity it references must be selected in the local administrator picker and included
 in the Study profile. The bridge filters snapshots and rejects commands outside that profile, so the browser
 cannot escape the view's allow-list by sending a modified request.
+
+### Blender/GLB Study experiment
+
+`study-model.html` uses the same `study` access profile, password, remembered-device credential and device
+controls as the original 3D Study. It does not replace `study.html`. Its room and placeholder furniture are
+stored in `models/study/study.glb`; download that file from the page, or import it into Blender with
+**File → Import → glTF 2.0**.
+
+Objects ending in `_REPLACEABLE` are intended to be swapped for better furniture. Keep entity object names
+such as `Entity_StudyDoor_Left`, `Entity_LEDStrip`, `Entity_Screen_Surface` and `Entity_Heater_Fin_*` when
+editing, because `study-model-scene.js` uses those names to attach live Home Assistant behaviour. After
+editing, export the scene as glTF 2.0 in binary `.glb` form and replace `models/study/study.glb`.
+
+To rebuild the starter model from the measured Study configuration, run:
+
+```sh
+npm run build:study-model
+```
 
 ## Security boundaries
 
