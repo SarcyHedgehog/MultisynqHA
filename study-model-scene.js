@@ -135,14 +135,14 @@ export function createStudyScene(canvas, config) {
   async function replaceChairPlaceholder(){
     const item=config.furniture.find(x=>x.type==="office-chair");if(!item)return;
     const placed={...item,position:[item.position[0],0,item.position[2]]};
-    await loadSizedModel("models/study/chair/scene.gltf",placed,{height:item.size[1],floor:true,rotation:item.rotation||0});
+    await loadSizedModel("models/study/chair/scene.gltf",placed,{height:item.size[1]*1.15,floor:true,rotation:(item.rotation||0)+Math.PI});
     hideNodes(["Furniture_OfficeChair_Seat_REPLACEABLE","Furniture_OfficeChair_Back","Furniture_OfficeChair_Stem"]);
   }
 
   function replaceRug(){
     const item=config.furniture.find(x=>x.type==="rug");if(!item)return;
-    const texture=new THREE.TextureLoader().load("models/study/rug/carpet-basecolor.jpg");texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
-    const rug=addMesh(new THREE.PlaneGeometry(item.size[0],item.size[2]),new THREE.MeshStandardMaterial({map:texture,roughness:.94,metalness:0}),[item.position[0],.034,item.position[2]]);rug.rotation.x=-Math.PI/2;rug.castShadow=false;
+    const texture=new THREE.TextureLoader().load("models/study/rug/carpet-cutout.png");texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=renderer.capabilities.getMaxAnisotropy();
+    const rug=addMesh(new THREE.PlaneGeometry(item.size[0],item.size[2]),new THREE.MeshStandardMaterial({map:texture,transparent:true,alphaTest:.08,roughness:.94,metalness:0}),[item.position[0],.034,item.position[2]]);rug.rotation.x=-Math.PI/2;rug.castShadow=false;
     hideNodes(["Furniture_Rug_REPLACEABLE"]);
   }
 
@@ -172,7 +172,7 @@ export function createStudyScene(canvas, config) {
 
   function addOutsideSockets(){
     const shell=material(0x20272c,{roughness:.55}),face=material(0x0d1114,{roughness:.4});
-    for(const x of [5.22,5.64]){const group=new THREE.Group();group.position.set(x,.55,-.12);scene.add(group);addMesh(new THREE.BoxGeometry(.27,.22,.08),shell,[0,0,0],group);addMesh(new THREE.BoxGeometry(.23,.17,.025),face,[0,0,-.052],group);for(const dx of [-.045,.045])addMesh(new THREE.CylinderGeometry(.014,.014,.012,10),material(0x050607),[dx,.01,-.071],group).rotation.x=Math.PI/2;}
+    for(const z of [2.68,3.08]){const group=new THREE.Group();group.position.set(-.12,.55,z);group.rotation.y=Math.PI/2;scene.add(group);addMesh(new THREE.BoxGeometry(.27,.22,.08),shell,[0,0,0],group);addMesh(new THREE.BoxGeometry(.23,.17,.025),face,[0,0,-.052],group);for(const dx of [-.045,.045])addMesh(new THREE.CylinderGeometry(.014,.014,.012,10),material(0x050607),[dx,.01,-.071],group).rotation.x=Math.PI/2;}
   }
 
   async function replaceScreens(){
