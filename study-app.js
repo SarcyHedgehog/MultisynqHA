@@ -137,7 +137,7 @@ async function connect(passwordHash) {
 }
 
 function renderDeviceCards() {
-  const controllableDevices = study.devices.filter((device) => !["presence", "door-sensor", "leak", "temperature", "ambient-light"].includes(device.type));
+  const controllableDevices = study.devices.filter((device) => !["presence", "door-sensor", "leak", "temperature", "daily-energy", "ambient-light"].includes(device.type));
   dom.devices.innerHTML = controllableDevices.map((device) => {
     const entity = liveEntities.get(device.entityId);
     const active = isActive(entity);
@@ -452,11 +452,13 @@ async function loadPhoton(url){if(window.Photon?.LoadBalancing)return;await new 
 function escapeHtml(value){return String(value??"").replace(/[&<>'"]/g,(character)=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[character]));}
 
 if (previewMode) {
-  for (const device of study.devices) liveEntities.set(device.entityId, {
+  for (const device of study.devices.filter((item) => item.entityId)) liveEntities.set(device.entityId, {
     entityId: device.entityId, state: ["gu10-track", "floor-lamp", "led-strip", "screen", "equipment", "heater", "presence"].includes(device.type) ? "on" : "off",
     available: true, writable: false, unit: device.type === "temperature" ? "°C" : "", control: { type: "read_only" },
   });
   liveEntities.get("sensor.study_door_device_temperature").state = "21.4";
+  liveEntities.set("sensor.heater_today_s_consumption", { entityId: "sensor.heater_today_s_consumption", state: "2.308", available: true, unit: "kWh" });
+  liveEntities.set("sensor.office_standard_today_s_consumption", { entityId: "sensor.office_standard_today_s_consumption", state: "0.143", available: true, unit: "kWh" });
   liveEntities.get("sensor.back_garden_motion_illuminance").state = "650";
   liveEntities.get("light.rgb_strip_lights").attributes = { rgb_color: [255, 42, 166], brightness: 190 };
   liveEntities.get("binary_sensor.study_door_contact").state = "open";

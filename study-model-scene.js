@@ -28,6 +28,8 @@ export function createStudyScene(canvas, config) {
   let latestEntities = new Map();
   let loaded = false;
   let sofaPlaceholder = null;
+  let energyBadge = null;
+  let energyConfig = null;
   const bind=(id,fn)=>{if(!effects.has(id))effects.set(id,[]);effects.get(id).push(fn);};
   const active=e=>e?.available&&["on","open","detected","heat"].includes(String(e.state).toLowerCase());
   const material=(color,o={})=>new THREE.MeshStandardMaterial({color,roughness:o.roughness??.7,metalness:o.metalness??0,emissive:o.emissive??0x000000,emissiveIntensity:o.emissiveIntensity??0});
@@ -71,7 +73,15 @@ export function createStudyScene(canvas, config) {
       const badge=makeWallBadge(presence.position,.23,.23,ctx=>{ctx.strokeStyle="#60edff";ctx.fillStyle="#60edff";ctx.lineWidth=12;ctx.lineCap="round";ctx.beginPath();ctx.arc(128,30,17,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(128,55);ctx.lineTo(128,88);ctx.moveTo(128,64);ctx.lineTo(91,80);ctx.moveTo(128,64);ctx.lineTo(165,80);ctx.moveTo(128,88);ctx.lineTo(101,119);ctx.moveTo(128,88);ctx.lineTo(155,119);ctx.stroke();});
       badge.draw();badge.group.visible=false;bind(presence.entityId,on=>badge.group.visible=on);
     }
+    const energy=config.devices.find(x=>x.type==="daily-energy");
+    if(energy){
+      energyConfig=energy;
+      energyBadge=makeWallBadge(energy.position,.64,.2,(ctx,value)=>{ctx.fillStyle="#091521";ctx.fillRect(0,0,256,128);ctx.strokeStyle="#3e789b";ctx.lineWidth=7;ctx.strokeRect(4,4,248,120);ctx.fillStyle="#eaf7ff";ctx.font="700 40px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(value||"—",128,66);});
+      energyBadge.draw("—");
+    }
   }
+
+  function updateEnergy(entities){if(!energyBadge||!energyConfig)return;const values=energyConfig.entityIds.map(id=>entities.get(id)).filter(e=>e?.available&&Number.isFinite(Number(e.state)));energyBadge.draw(values.length===energyConfig.entityIds.length?`${values.reduce((sum,e)=>sum+Number(e.state),0).toFixed(3)} kWh`:"—");}
 
   function addLiveEffects() {
     const trackEntities=["light.office_light_switch_l1","light.office_light_switch_l2"];
@@ -204,7 +214,7 @@ export function createStudyScene(canvas, config) {
   },undefined,error=>console.error("Could not load the Blender Study model",error));
 
   function updateDaylight(entities){const e=entities.get("sensor.back_garden_motion_illuminance"),lux=Math.max(0,Number(e?.state)||0),day=lux<=60?0:Math.max(0,Math.min(1,(Math.log10(lux+1)-Math.log10(61))/2.2));hemisphere.intensity=.25+1.1*day;sun.intensity=.05+2.15*day;renderer.toneMappingExposure=.7+.3*day;const sky=new THREE.Color(0x020711).lerp(new THREE.Color(0x0f2c43),day);scene.background.copy(sky);scene.fog.color.copy(sky);}
-  function apply(entities){if(!loaded)return;for(const[id,setters]of effects){const e=entities.get(id),on=active(e);setters.forEach(fn=>fn(on,e));}updateDaylight(entities);}
+  function apply(entities){if(!loaded)return;for(const[id,setters]of effects){const e=entities.get(id),on=active(e);setters.forEach(fn=>fn(on,e));}updateEnergy(entities);updateDaylight(entities);}
   function update(entities){latestEntities=entities;apply(entities);}
 
   const updateCamera=()=>{const h=orbit.radius*Math.cos(orbit.pitch);camera.position.set(target.x+Math.sin(orbit.yaw)*h,target.y+Math.sin(orbit.pitch)*orbit.radius,target.z+Math.cos(orbit.yaw)*h);camera.lookAt(target);};

@@ -38,6 +38,7 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { entityId: "binary_sensor.study_door_contact", name: "Study door", type: "door-sensor", position: [1.6, 1.05, 0.03] },
     { entityId: "binary_sensor.study_leak_detector_water_leak", name: "Leak detector", type: "leak", position: [5.2, 0.04, 0.4], effect: "alert" },
     { entityId: "sensor.study_door_device_temperature", name: "Room temperature", type: "temperature", position: [2.63, 1.56, 0.04] },
+    { entityIds: ["sensor.heater_today_s_consumption", "sensor.office_standard_today_s_consumption"], name: "Energy today", type: "daily-energy", position: [2.82, 1.27, 0.04] },
     { entityId: "sensor.back_garden_motion_illuminance", name: "Outdoor light level", type: "ambient-light" },
   ],
 };
