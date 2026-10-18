@@ -170,7 +170,7 @@ for (const x of [6.42,7.02]) {
   addBox(`Furniture_Monitor_Stand_${x}`,[x,.98,1.78],[.035,.2,.035],"DarkMetal");
 }
 
-for(let i=-4;i<=4;i++) addBox(`Entity_Heater_Fin_${i}`,[3.8+i*.075,.43,1.8],[.052,.72,.3],"Heater",{entityId:"fan.office_heater"});
+for(let i=-4;i<=4;i++) addBox(`Entity_Heater_Fin_${i}`,[3.8+i*.075,.43,1.8],[.052,.72,.3],"Heater",{entityId:"switch.heater"});
 addBox("Entity_LEDStrip",[4,2.48,.04],[7.8,.045,.05],"LED",{entityId:"light.rgb_strip_lights"});
 for (const [x,name] of [[2.4,"Left"],[5.6,"Right"]]) addBox(`Entity_CeilingTrack_${name}`,[x,2.5,1.65],[.1,.055,1.3],"DarkMetal",{entityId:`light.office_light_switch_l${name==="Left"?1:2}`});
 

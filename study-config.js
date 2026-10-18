@@ -31,7 +31,7 @@ window.PHOTON_HA_STUDY_CONFIG = {
     { entityId: "light.office_standard_lamp", name: "Standard lamp", type: "floor-lamp", position: [0.42, 0, 3.18], effect: "warm-light" },
     { entityId: "light.rgb_strip_lights", name: "LED strip", type: "led-strip", position: [4.0, 2.48, 0.04], size: [7.8, 0.03, 0.03], effect: "colour-wash" },
     { entityId: "light.office_light_switch_l3", name: "Outside wall light", type: "wall-light", position: [4.6, 1.72, -0.18], effect: "warm-light" },
-    { entityId: "fan.office_heater", name: "Office heater", type: "heater", position: [3.8, 0, 1.8], effect: "heat" },
+    { entityId: "switch.heater", name: "Office heater", type: "heater", position: [3.8, 0, 1.8], effect: "heat" },
     { entityId: "switch.screen", name: "Screen", type: "screen", position: [4.0, 1.35, 0.08], effect: "screen-glow" },
     { entityId: "switch.office_standard", name: "Office monitors", type: "equipment", position: [6.72, 1.17, 1.18], effect: "monitor-glow" },
     { entityId: "binary_sensor.studypresence_occupancy", name: "Presence", type: "presence", position: [3.02, 1.56, 0.04], effect: "presence" },

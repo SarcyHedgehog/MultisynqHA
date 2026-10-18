@@ -16,7 +16,7 @@
         "light.office_standard_lamp",
         "light.rgb_strip_lights",
         "light.office_light_switch_l3",
-        "fan.office_heater",
+        "switch.heater",
         "switch.screen",
         "switch.office_standard",
         "binary_sensor.studypresence_occupancy",
